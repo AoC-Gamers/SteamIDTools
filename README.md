@@ -1,10 +1,9 @@
 # Servicio de Conversión SteamID (Go)
 
-Servicio web de alto rendimiento para conversión de SteamID específicamente diseñado para servidores de Left 4 Dead 2, donde el motor no soporta cálculos de 64 bits nativamente. **Migrado a Go para máximo rendimiento**.
+Servicio web de alto rendimiento para conversión de SteamID específicamente diseñado para servidores de Left 4 Dead 2, donde el motor no soporta cálculos de 64 bits nativamente.
 
-## 🚀 Ventajas de la Versión Go
+## 🚀 Ventajas
 
-- ⚡ **3-5x más rápido** que la versión Python
 - 🐳 **5-10x imagen Docker más pequeña** (~15MB vs ~100MB)
 - 🔧 **Binario estático** - sin dependencias de runtime
 - 🚀 **Inicio ultra-rápido** - listo en <1 segundo
@@ -16,18 +15,34 @@ Servicio web de alto rendimiento para conversión de SteamID específicamente di
 
 ### Opción 1: Usando Docker (Recomendado)
 
+#### ¿Qué archivo o script usar?
+
+**docker-compose.dev.yml**
+
+✅ Usa este archivo si:
+
+- Quieres construir la imagen Docker localmente con el código fuente.
+- Estás desarrollando o realizando pruebas.
+- Necesitas hacer cambios frecuentes en el código Go y ver los resultados rápidamente.
+
+📦 Ejemplo de uso:
+
 ```bash
-# Clonar y configurar
-git clone <repo>
-cd steamid-tools
+docker compose -f docker-compose.dev.yml up --build
+```
 
-# Copiar configuración de ejemplo
-cp .env.example .env
+**docker-compose.yml**
 
-# Construir y desplegar
-make all
-# O usando el script:
-./build-and-deploy.sh all
+✅ Usa este archivo si:
+
+- Quieres descargar la imagen ya construida desde el registro Docker Hub o GitHub Packages.
+- Estás desplegando en entornos de producción.
+- No necesitas reconstruir el binario Go manualmente.
+
+📦 Ejemplo de uso:
+
+```bash
+docker compose -f docker-compose.yml up -d
 ```
 
 ### Opción 2: Ejecución Directa (Desarrollo)
@@ -69,8 +84,6 @@ curl "http://localhost:80/SID64toAID?steamid=76561197960287930"
 # Iniciar en modo debug (logs extra)
 .\serve.ps1 -Debug
 ```
-
-> **Nota:** Los scripts antiguos `start-server.sh` y `start-server.ps1` ahora solo redirigen a los nuevos scripts y muestran un mensaje informativo.
 
 ## APIs Disponibles
 
@@ -149,20 +162,14 @@ La respuesta será en formato KeyValue de Valve:
 
 Por defecto, el máximo de elementos permitidos en una consulta batch es **32**. Puedes modificar este límite estableciendo la variable de entorno `MAX_BATCH_ITEMS`:
 
-```bash
-# Ejemplo para permitir hasta 64 elementos por lote
-export MAX_BATCH_ITEMS=64
-./serve.sh
-```
-
-Si usas Docker Compose, puedes ajustar el valor en el archivo `docker-compose.dev.yml`:
+En Docker Compose, puedes ajustar el valor en el archivo `docker-compose.dev.yml`:
 
 ```yaml
 environment:
-  - MAX_BATCH_ITEMS=64
+  - MAX_BATCH_ITEMS=16
 ```
 
-> Si excedes el límite, el backend devolverá un error claro y no procesará la solicitud.
+> Si excedes el límite, el backend devolverá un error y no procesará la solicitud.
 
 ## Configuración
 
@@ -202,57 +209,6 @@ environment:
 ```
 Puedes sobreescribirla en tu `.env` o directamente en el archivo Compose.
 
-### Ejemplos avanzados de configuración de idioma del backend
-
-#### 1. Cambiar el idioma del backend a español en Docker Compose
-
-En tu archivo `docker-compose.yml` o `docker-compose.dev.yml`:
-```yaml
-environment:
-  - BACKEND_LANG=es
-```
-
-#### 2. Usar un archivo `.env` para definir el idioma del backend
-
-Crea o edita tu `.env`:
-```
-BACKEND_LANG=es
-```
-Docker Compose lo tomará automáticamente si usas la variable en el archivo Compose:
-```yaml
-environment:
-  - BACKEND_LANG=${BACKEND_LANG:-en}
-```
-
-#### 3. Cambiar el idioma del backend en ejecución directa (Go)
-
-Puedes pasar el idioma como variable de entorno o parámetro:
-
-```bash
-# Usando variable de entorno
-BACKEND_LANG=es go run main.go
-
-# Usando parámetro de línea de comandos
-cd go
-go run main.go -backend-lang=es
-```
-
-#### 4. Cambiar el idioma del backend en scripts multiplataforma
-
-- En Linux/macOS:
-  ```bash
-  BACKEND_LANG=es ./serve.sh
-  ```
-- En Windows PowerShell:
-  ```powershell
-  $env:BACKEND_LANG="es"
-  .\serve.ps1
-  ```
-
-> Puedes usar cualquier valor soportado por el backend (`en`, `es`, etc.) y agregar más archivos de idioma en `go/lang/messages_backend_XX.json`.
->
-> **Nota:** Si defines un idioma en `BACKEND_LANG` que no está disponible o cuyo archivo no existe, el backend usará inglés automáticamente como fallback. No se producirá error, pero los mensajes internos estarán en inglés.
-
 ## Comandos Docker
 
 ### Usando Makefile (Recomendado)
@@ -290,75 +246,6 @@ docker run -d -p 80:80 --name steamid-service steamid-service
 
 ## Uso desde SourcePawn
 
-```sourcepawn
-// Ejemplo usando SteamWorks
-Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, "http://localhost:80/SID64toAID?steamid=76561197960287930");
-SteamWorks_SetHTTPCallbacks(hRequest, OnHTTPResponse);
-SteamWorks_SendHTTPRequest(hRequest);
-
-public void OnHTTPResponse(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data)
-{
-    if (bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
-    {
-        int iSize;
-        SteamWorks_GetHTTPResponseBodySize(hRequest, iSize);
-        
-        char[] szResponse = new char[iSize + 1];
-        SteamWorks_GetHTTPResponseBodyData(hRequest, szResponse, iSize + 1);
-        
-        int iAccountID = StringToInt(szResponse);
-        PrintToServer("AccountID: %d", iAccountID);
-    }
-    
-    CloseHandle(hRequest);
-}
-```
-
-### Ejemplo con validación de errores:
-```sourcepawn
-stock void ConvertSteamID64ToAccountID(const char[] szSteamID64, Function callback)
-{
-    char szURL[256];
-    Format(szURL, sizeof(szURL), "http://localhost:80/SID64toAID?steamid=%s", szSteamID64);
-    
-    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, szURL);
-    SteamWorks_SetHTTPRequestContextValue(hRequest, callback);
-    SteamWorks_SetHTTPCallbacks(hRequest, OnSteamIDConverted);
-    SteamWorks_SendHTTPRequest(hRequest);
-}
-
-public void OnSteamIDConverted(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data)
-{
-    if (bRequestSuccessful && eStatusCode == k_EHTTPStatusCode200OK)
-    {
-        int iSize;
-        SteamWorks_GetHTTPResponseBodySize(hRequest, iSize);
-        
-        char[] szResponse = new char[iSize + 1];
-        SteamWorks_GetHTTPResponseBodyData(hRequest, szResponse, iSize + 1);
-        
-        // Verificar si es un error
-        if (StrContains(szResponse, "ERROR:", false) == -1)
-        {
-            int iAccountID = StringToInt(szResponse);
-            Function fCallback = view_as<Function>(data);
-            Call_StartFunction(null, fCallback);
-            Call_PushCell(iAccountID);
-            Call_Finish();
-        }
-        else
-        {
-            LogError("SteamID conversion error: %s", szResponse);
-        }
-    }
-    else
-    {
-        LogError("HTTP request failed: %d", eStatusCode);
-    }
-    
-    CloseHandle(hRequest);
-}
-```
 
 ## Requisitos
 
@@ -395,14 +282,6 @@ curl "http://localhost:80/health"
 # Respuesta: HEALTHY
 ```
 
-## Monitoreo y Verificación de Salud
-
-El contenedor incluye verificaciones de salud automáticas:
-- Verifica que el servicio responda correctamente
-- Intervalo de 30 segundos
-- Timeout de 5 segundos
-- 3 reintentos antes de marcar como no saludable
-
 ## Arquitectura
 
 El servicio está diseñado para:
@@ -414,24 +293,12 @@ El servicio está diseñado para:
 - Verificaciones de salud integradas
 - **Uso mínimo de recursos** (16MB RAM, <1% CPU)
 - **Inicio instantáneo** (<1 segundo)
-- **Manejo robusto de errores** con códigos de estado HTTP apropiados
 - **Procesamiento por lotes** con formato KeyValue de Valve
 - **Configuración flexible** del universo SteamID2
 
-## Características Avanzadas
-
-- ✅ **Validación exhaustiva** de entrada con mensajes de error específicos
-- ✅ **Logging detallado** con dirección IP del cliente
-- ✅ **Procesamiento por lotes** (hasta 100 elementos)
-- ✅ **Formato KeyValue** compatible con Valve
-- ✅ **Configuración de universo** SteamID2 (STEAM_X:Y:Z)
-- ✅ **Verificaciones de salud** integradas
-- ✅ **CORS habilitado** para uso desde navegadores
-- ✅ **Códigos de estado HTTP** apropiados para cada tipo de error
-
 ## Manejo de Errores
 
-El servicio proporciona mensajes de error detallados y códigos de estado HTTP apropiados:
+El servicio proporciona mensajes de error y códigos de estado HTTP:
 
 ### Códigos de Error HTTP
 
@@ -512,3 +379,232 @@ Y para español:
 > Los archivos deben estar en `go/lang/` y pueden ser editados para agregar más idiomas o mensajes personalizados.
 
 ---
+
+# Ejemplos de Integración en SourcePawn
+
+Aquí ejemplos prácticos para usar el servicio SteamIDTools desde SourcePawn, tanto offline (sin backend) como mediante llamadas HTTP usando SteamWorks o System2.
+
+### 🔹 Ejemplo Offline (sin HTTP)
+Convierte SteamIDs localmente sin depender del backend Go:
+
+```sourcepawn
+#include <sourcemod>
+#include <steamidtools.inc>
+
+public void OnPluginStart()
+{
+    RegConsoleCmd("sm_sidtools_offline", CmdOfflineConversion);
+}
+
+public Action CmdOfflineConversion(int client, int args)
+{
+    int accountId = GetClientAccountID(client);
+
+    char sid2[MAX_AUTHID_LENGTH];
+    char sid3[MAX_AUTHID_LENGTH];
+    char sid64[MAX_AUTHID_LENGTH];
+
+    // AccountID → SteamID2
+    if (AccountIDToSteamID2(accountId, sid2, sizeof(sid2)))
+    {
+        PrintToChat(client, "AccountID %d → SteamID2: %s", accountId, sid2);
+    }
+
+    // AccountID → SteamID3
+    if (AccountIDToSteamID3(accountId, sid3, sizeof(sid3)))
+    {
+        PrintToChat(client, "AccountID %d → SteamID3: %s", accountId, sid3);
+    }
+
+    // AccountID → SteamID64
+    if (AccountIDToSteamID64(accountId, sid64, sizeof(sid64)))
+    {
+        PrintToChat(client, "AccountID %d → SteamID64: %s", accountId, sid64);
+    }
+
+    // SteamID2 → AccountID
+    int newAccountId = SteamID2ToAccountID(sid2);
+    PrintToChat(client, "SteamID2 %s → AccountID: %d", sid2, newAccountId);
+
+    // SteamID3 → AccountID
+    newAccountId = SteamID3ToAccountID(sid3);
+    PrintToChat(client, "SteamID3 %s → AccountID: %d", sid3, newAccountId);
+
+    return Plugin_Handled;
+}
+```
+
+**Ventajas:**
+- Rápido e instantáneo.
+- No requiere acceso al backend ni red.
+- Perfecto para plugins simples.
+
+### 🔹 Ejemplo usando SteamWorks
+Ejemplo realizando petición HTTP con SteamWorks:
+
+```sourcepawn
+#include <sourcemod>
+#include <steamworks>
+#include <steamidtools.inc>
+
+public void OnPluginStart()
+{
+    RegConsoleCmd("sm_sidtools_steamworks", CmdSteamWorksExample);
+}
+
+public Action CmdSteamWorksExample(int client, int args)
+{
+    char url[256];
+    Format(url, sizeof(url),
+        "http://localhost:80/SID64toAID?steamid=%s",
+        "76561197960287930"
+    );
+
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
+    SteamWorks_SetHTTPRequestContextValue(hRequest, client);
+    SteamWorks_SetHTTPCallbacks(hRequest, OnSteamWorksResponse);
+    SteamWorks_SendHTTPRequest(hRequest);
+
+    PrintToChat(client, "[SteamIDTools] Request sent via SteamWorks!");
+
+    return Plugin_Handled;
+}
+
+public void OnSteamWorksResponse(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data)
+{
+    int client = data;
+
+    if (!bRequestSuccessful || eStatusCode != k_EHTTPStatusCode200OK)
+    {
+        PrintToChat(client, "[SteamIDTools] HTTP Error!");
+        CloseHandle(hRequest);
+        return;
+    }
+
+    int size;
+    SteamWorks_GetHTTPResponseBodySize(hRequest, size);
+
+    char response[128];
+    SteamWorks_GetHTTPResponseBodyData(hRequest, response, sizeof(response));
+
+    PrintToChat(client, "[SteamIDTools] SteamID64 → AccountID: %s", response);
+
+    CloseHandle(hRequest);
+}
+```
+
+**Ventajas:**
+- Integrado con SourceMod/SteamWorks.
+
+### 🔹 Ejemplo usando System2
+Ejemplo moderno usando System2 (recomendado si no usas SteamWorks):
+
+```sourcepawn
+#include <sourcemod>
+#include <system2>
+#include <steamidtools.inc>
+
+public void OnPluginStart()
+{
+    RegConsoleCmd("sm_sidtools_sys2", CmdSystem2Example);
+}
+
+public Action CmdSystem2Example(int client, int args)
+{
+    char url[256];
+    Format(url, sizeof(url),
+        "http://localhost:80/SID64toSID2?steamid=%s",
+        "76561197960287930"
+    );
+
+    System2HTTPRequest req = new System2HTTPRequest(OnSystem2Response, url);
+    req.Any = client;
+    req.GET();
+
+    PrintToChat(client, "[SteamIDTools] Request sent via System2!");
+
+    return Plugin_Handled;
+}
+
+public void OnSystem2Response(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
+{
+    int client = view_as<int>(request.Any);
+
+    if (!success || response.StatusCode != 200)
+    {
+        PrintToChat(client, "[SteamIDTools] HTTP Error: %s", error);
+        return;
+    }
+
+    char data[128];
+    response.GetContent(data, sizeof(data));
+
+    PrintToChat(client, "[SteamIDTools] SteamID64 → SteamID2: %s", data);
+}
+```
+
+**Ventajas:**
+- Moderno y asíncrono.
+- Compatible con HTTPS y proxies.
+- Flexible para todo tipo de peticiones.
+
+### 🔹 Ejemplo Batch con System2
+Tu backend soporta conversiones por lotes. Ejemplo:
+
+```sourcepawn
+#include <sourcemod>
+#include <system2>
+#include <steamidtools.inc>
+
+public void OnPluginStart()
+{
+    RegConsoleCmd("sm_sidtools_batch", CmdBatchSystem2);
+}
+
+public Action CmdBatchSystem2(int client, int args)
+{
+    char url[512];
+    Format(url, sizeof(url),
+        "http://localhost:80/SID64toAID?steamid=%s",
+        "76561197960287930,76561197960287931,76561197960287932"
+    );
+
+    System2HTTPRequest req = new System2HTTPRequest(OnBatchSystem2Response, url);
+    req.Any = client;
+    req.GET();
+
+    PrintToChat(client, "[SteamIDTools] Batch request sent via System2!");
+
+    return Plugin_Handled;
+}
+
+public void OnBatchSystem2Response(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
+{
+    int client = view_as<int>(request.Any);
+
+    if (!success || response.StatusCode != 200)
+    {
+        PrintToChat(client, "[SteamIDTools] HTTP Error: %s", error);
+        return;
+    }
+
+    char data[512];
+    response.GetContent(data, sizeof(data));
+
+    PrintToChat(client, "[SteamIDTools] Batch Response:\n%s", data);
+}
+```
+
+**Ventajas:**
+- Compatible con lotes grandes.
+- Respuesta en KeyValue, ideal para parsear resultados múltiples.
+
+---
+
+### ✅ ¿Qué método usar?
+
+| Método     | Cuándo usarlo                        |
+|------------|--------------------------------------|
+| Offline    | Para conversiones locales rápidas.    |
+| SteamWorks | Si ya usas SteamWorks.               |
+| System2    | Para máxima flexibilidad HTTP.        |
