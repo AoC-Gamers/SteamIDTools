@@ -1,13 +1,5 @@
 #!/bin/bash
-# Wrapper para iniciar el backend Go de SteamIDTools (Linux/macOS)
-# Uso idéntico a start-server.sh, solo cambia el nombre para mayor claridad multiplataforma
-
-# El contenido es idéntico a start-server.sh, solo cambia el nombre del archivo.
-# Puedes mantener ambos archivos o eliminar start-server.sh si prefieres solo uno.
-
-# Para mantener DRY, puedes hacer que start-server.sh solo haga exec serve.sh "$@"
-
-# Copia aquí el contenido actualizado de start-server.sh
+# Wrapper to start the SteamIDTools Go backend on (Linux/macOS)
 
 set -e
 
@@ -78,7 +70,6 @@ if [[ $SHOW_HELP -eq 1 ]]; then
     exit 0
 fi
 
-# Check dependencies
 if ! command -v go &> /dev/null; then
     echo -e "${RED}❌ ERROR: Go is not installed or not in PATH${NC}"
     echo -e "   Download Go from: https://golang.org/dl/"
@@ -91,7 +82,6 @@ if [[ ! -f go/main.go ]]; then
     exit 1
 fi
 
-# Check if port is in use
 if ss -tuln 2>/dev/null | grep -q ":$PORT "; then
     echo -e "${YELLOW}⚠️  WARNING: Port $PORT is already in use${NC}"
     echo -e "   Use 'sudo lsof -i :$PORT' to see the process."
@@ -102,7 +92,6 @@ if ss -tuln 2>/dev/null | grep -q ":$PORT "; then
     fi
 fi
 
-# Show minimal server info
 DISPLAY_HOST="$HOST"
 if [[ "$HOST" == "0.0.0.0" ]]; then
     DISPLAY_HOST="localhost"
@@ -115,7 +104,6 @@ echo -e "🚪 Port: $PORT"
 echo -e "\n${YELLOW}For available endpoints and features, see the server output below.${NC}"
 echo
 
-# Set environment variables
 export PORT="$PORT"
 export HOST="$HOST"
 if [[ $DEBUG -eq 1 ]]; then
@@ -124,16 +112,13 @@ fi
 
 trap 'echo -e "\n${YELLOW}🛑 Stopping server...${NC}"; exit 0' SIGINT
 
-# Eliminar binario previo si se usa --debug para forzar recompilación limpia en modo debug
 if [[ $DEBUG -eq 1 ]]; then
-    # Eliminar binario previo para recompilar limpio en debug
     if [[ -f go/$BIN_NAME ]]; then
         echo -e "${YELLOW}🧹 Eliminando binario previo para recompilación limpia (debug)...${NC}"
         rm -f go/$BIN_NAME
     fi
 fi
 
-# Compilar si no existe el binario
 if [[ ! -f go/$BIN_NAME ]]; then
     echo -e "${YELLOW}⚙️  Compilando binario Go...${NC}"
     (cd go && go build -o $BIN_NAME .)
@@ -144,7 +129,6 @@ if [[ ! -f go/$BIN_NAME ]]; then
     echo -e "${GREEN}✅ Binario compilado: go/$BIN_NAME${NC}"
 fi
 
-# Ejecutar el binario desde la carpeta go
 cd go
 if [[ $DEBUG -eq 1 ]]; then
     echo -e "${CYAN}🔍 Debug mode enabled (DEBUG=1)${NC}"

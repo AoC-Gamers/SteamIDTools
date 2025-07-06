@@ -1,6 +1,5 @@
 # SteamID Tools - Go Server (PowerShell version)
 # Wrapper to start the SteamIDTools Go backend on Windows
-# Usage is identical to start-server.ps1, only the filename is different for multiplatform clarity
 
 param(
     [int]$Port = 80,
@@ -37,7 +36,6 @@ if ($Help) {
     exit 0
 }
 
-# Check dependencies
 try {
     $goVersion = & go version 2>$null
     if ($LASTEXITCODE -eq 0) {
@@ -57,7 +55,6 @@ if (-not (Test-Path "go\main.go")) {
     exit 1
 }
 
-# Set environment variables
 $env:PORT = $Port.ToString()
 $env:HOST = $HostAddress
 if ($Debug) {
@@ -67,17 +64,14 @@ if ($Debug) {
 
 Push-Location "go"
 
-# Define binary name by platform
 $binName = if ($IsWindows) { "steamid-service.exe" } else { "steamid-service" }
 
-# Remove previous binary if -Debug for clean rebuild
 if ($Debug -and (Test-Path $binName)) {
     Write-Host "🧹 Removing previous binary for clean rebuild (debug)..." -ForegroundColor Yellow
     Remove-Item $binName -Force
 }
 
 try {
-    # Build if binary does not exist or code changed
     if (-not (Test-Path $binName)) {
         Write-Host "⚙️  Building Go binary..." -ForegroundColor Yellow
         & go build -o $binName .
@@ -88,7 +82,6 @@ try {
         Write-Host "✅ Binary built: $binName" -ForegroundColor Green
     }
 
-    # Run the binary
     if ($Debug) {
         Write-Host "🔍 Debug mode enabled (DEBUG=1)" -ForegroundColor Cyan
         $env:DEBUG = "1"
