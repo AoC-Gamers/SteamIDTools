@@ -1,0 +1,15 @@
+{
+  "service_ready": "✅ Servicio listo - Todos los endpoints configurados",
+  "debug_enabled": "🪲 DEBUG ACTIVADO: Se mostrarán cabeceras y detalles de cada petición",
+  "starting_on": "🚀 Servicio de conversión SteamID (Go) iniciando en %s:%s",
+  "error_handling": "📊 Sistema de manejo de errores: ACTIVADO",
+  "detailed_logging": "🔍 Logging detallado: ACTIVADO",
+  "batch_processing": "📦 Procesamiento por lotes: ACTIVADO (máx %d elementos)",
+  "keyvalue_output": "🗝️  Salida en formato KeyValue: ACTIVADO",
+  "steamid2_universe": "🌍 Universo SteamID2: %s (configurado)",
+  "press_ctrlc": "Presiona Ctrl+C para detener el servicio",
+  "press_ctrlc_hint": "\nPresiona Ctrl+C para detener el servicio",
+  "service_ready_log": "✅ Servicio listo - Todos los endpoints configurados",
+  "debug_enabled_log": "🪲 DEBUG ACTIVADO: Se mostrarán cabeceras y detalles de cada petición",
+  "server_failed": "❌ Error al iniciar el servidor: %v"
+}

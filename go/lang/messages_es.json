@@ -1,0 +1,21 @@
+{
+  "steamid_param_required": "se requiere el parámetro steamid",
+  "batch_limit": "límite de lote excedido (máx %d elementos)",
+  "batch_parse_failed": "falló el análisis del lote",
+  "input": "entrada: %s",
+  "accountid": "accountid: %s",
+  "invalid_format": "Formato de SteamID inválido",
+  "invalid_length": "La longitud del SteamID es incorrecta",
+  "invalid_characters": "Contiene caracteres inválidos",
+  "invalid_steamid2": "Formato de SteamID2 inválido (se espera STEAM_X:Y:Z)",
+  "invalid_steamid3": "Formato de SteamID3 inválido (se espera [U:1:XXXXXXXX])",
+  "invalid_steamid64": "Formato o rango de SteamID64 inválido",
+  "invalid_accountid": "AccountID inválido (debe ser numérico y positivo)",
+  "conversion_failed": "Fallo general de conversión",
+  "missing_parameter": "Falta un parámetro obligatorio",
+  "service_unavailable": "El servicio de conversión de SteamID no está disponible",
+  "duplicate_in_batch": "SteamID duplicado encontrado en el lote",
+  "invalid_endpoint": "Endpoint inválido. Endpoints disponibles: %s",
+  "unhealthy": "NO SALUDABLE: Falló la conversión",
+  "healthy": "SALUDABLE"
+}

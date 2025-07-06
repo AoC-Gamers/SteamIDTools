@@ -1,0 +1,21 @@
+{
+  "steamid_param_required": "steamid parameter required",
+  "batch_limit": "batch size limit exceeded (max %d items)",
+  "batch_parse_failed": "failed to parse batch input",
+  "input": "input: %s",
+  "accountid": "accountid: %s",
+  "invalid_format": "Invalid SteamID format provided",
+  "invalid_length": "SteamID length is incorrect",
+  "invalid_characters": "Contains invalid characters",
+  "invalid_steamid2": "Invalid SteamID2 format (expected STEAM_X:Y:Z)",
+  "invalid_steamid3": "Invalid SteamID3 format (expected [U:1:XXXXXXXX])",
+  "invalid_steamid64": "Invalid SteamID64 format or range",
+  "invalid_accountid": "Invalid AccountID (must be numeric and positive)",
+  "conversion_failed": "General conversion failure",
+  "missing_parameter": "Missing required parameter",
+  "service_unavailable": "SteamID conversion service is unavailable",
+  "duplicate_in_batch": "Duplicate SteamID found in batch",
+  "invalid_endpoint": "Invalid endpoint. Available endpoints: %s",
+  "unhealthy": "UNHEALTHY: Conversion test failed",
+  "healthy": "HEALTHY"
+}

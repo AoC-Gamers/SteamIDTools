@@ -1,0 +1,49 @@
+services:
+  steamid-service:
+    image: ghcr.io/aoc-gamers/steamidtools:latest
+    container_name: ${CONTAINER_NAME:-steamid-service}
+    ports:
+      - "${PORT:-80}:${PORT:-80}"
+    environment:
+      - PORT=${PORT:-80}
+      - HOST=${HOST:-0.0.0.0}
+      - SID2_UNIVERSE=${SID2_UNIVERSE:-1}
+      - COMPOSE_BAKE=true
+      - BACKEND_LANG=${BACKEND_LANG:-en}
+    restart: unless-stopped
+    
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT:-32m}
+          cpus: '${CPU_LIMIT:-0.2}'
+        reservations:
+          memory: 8m
+          cpus: '0.05'
+    
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=10m
+    
+    networks:
+      - steamid-network
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    healthcheck:
+      test: ["CMD", "curl", "-fsSL", "http://localhost:${PORT:-80}/health", "|", "grep", "HEALTHY"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  steamid-network:
+    driver: bridge
+    name: ${DOCKER_NETWORK:-steamid-network}

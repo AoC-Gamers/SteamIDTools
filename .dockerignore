@@ -1,0 +1,42 @@
+# Archivos de desarrollo y pruebas
+*.test.*
+test_simple.py
+test_service.py
+
+# Archivos de configuración de desarrollo
+.env
+.env.*
+requirements.txt
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Binarios y builds Go
+/go/steamid-service
+/go/steamid-service.exe
+/go/steamidtools
+
+# Archivos de git
+.git/
+.gitignore
+
+# Ignorar scripts y código fuente de SourceMod
+sourcemod/
+
+# Otros
+*.log
