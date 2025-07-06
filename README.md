@@ -244,9 +244,6 @@ docker build -t steamid-service .
 docker run -d -p 80:80 --name steamid-service steamid-service
 ```
 
-## Uso desde SourcePawn
-
-
 ## Requisitos
 
 ### Para ejecución directa:
