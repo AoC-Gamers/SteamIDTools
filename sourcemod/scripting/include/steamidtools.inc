@@ -279,11 +279,17 @@ stock int GetClientAccountID(int iClient)
 	return GetSteamAccountID(iClient);
 }
 
+
 /**
- * Finds a client by AccountID
+ * Finds the client index by their Steam Account ID.
  *
- * @param iAccountId    AccountID to search for
- * @return              Client index, or 0 if not found
+ * Iterates through all connected clients and returns the client index
+ * whose Steam Account ID matches the specified value.
+ *
+ * @param iAccountId	Steam Account ID to search for.
+ * @return				Client index (1-based) if found,
+ *                      0 if the provided Account ID is invalid,
+ *                      or -1 if no matching client is found.
  */
 stock int FindClientByAccountID(int iAccountId)
 {
@@ -294,16 +300,20 @@ stock int FindClientByAccountID(int iAccountId)
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClientIndex(i) && IsClientInGame(i))
+		if (!IsValidClientIndex(i) || !IsClientInGame(i))
 		{
-			if (GetSteamAccountID(i) == iAccountId)
-			{
-				return i;
-			}
+			continue;
 		}
+
+		if (GetSteamAccountID(i) != iAccountId)
+		{
+			continue;
+		}
+
+		return i;
 	}
 
-	return 0;
+	return -1;
 }
 
 /**
