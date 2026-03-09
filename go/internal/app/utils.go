@@ -1,9 +1,10 @@
-package main
+package app
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -26,15 +27,46 @@ func (e SteamIDError) IsValid() bool {
 	return e == ErrorNone
 }
 
-func formatAsKeyValue(results BatchResult, sectionName string) string {
+func localizedErrorMessage(err SteamIDError, lang string) string {
+	if err == ErrorNone {
+		return ""
+	}
+
+	translated := msg(err.Key(), lang)
+	if translated != err.Key() {
+		return translated
+	}
+
+	if fallback, ok := errorMessages[err]; ok {
+		return fallback
+	}
+
+	return err.Error()
+}
+
+func writePlainTextBody(w io.Writer, body string) {
+	// #nosec G705 -- this service intentionally returns text/plain content, including converted identifiers.
+	_, _ = io.WriteString(w, body)
+}
+
+func appendKeyValueLine(builder *strings.Builder, input, value string) {
+	// #nosec G705 -- batch responses are emitted as Valve KeyValue text, not HTML.
+	_, _ = fmt.Fprintf(builder, "    \"%s\" \"%s\"\n", input, value)
+}
+
+func formatAsKeyValue(results BatchResult, sectionName string, lang string) string {
 	var builder strings.Builder
-	builder.WriteString(fmt.Sprintf("\"%s\"\n{\n", sectionName))
-	for input, output := range results.Results {
-		builder.WriteString(fmt.Sprintf("    \"%s\" \"%s\"\n", input, output))
+	_, _ = fmt.Fprintf(&builder, "\"%s\"\n{\n", sectionName)
+
+	for _, item := range results.Items {
+		if item.Error.IsValid() {
+			appendKeyValueLine(&builder, item.Input, item.Value)
+			continue
+		}
+
+		appendKeyValueLine(&builder, item.Input, "ERROR: "+localizedErrorMessage(item.Error, lang))
 	}
-	for input, err := range results.Errors {
-		builder.WriteString(fmt.Sprintf("    \"%s\" \"ERROR: %s\"\n", input, err.Error()))
-	}
+
 	builder.WriteString("}")
 	return builder.String()
 }
@@ -43,11 +75,13 @@ func parseBatchInput(input string) ([]string, SteamIDError) {
 	if input == "" {
 		return nil, ErrorMissingParameter
 	}
+
 	steamids := strings.Split(input, ",")
-	if len(steamids) > MaxBatchItems {
+	if len(steamids) > appCfg.MaxBatchItems {
 		return nil, ErrorInvalidFormat
 	}
-	seen := make(map[string]struct{})
+
+	seen := make(map[string]struct{}, len(steamids))
 	for i, id := range steamids {
 		id = strings.TrimSpace(id)
 		if _, exists := seen[id]; exists {
@@ -59,7 +93,7 @@ func parseBatchInput(input string) ([]string, SteamIDError) {
 	return steamids, ErrorNone
 }
 
-func writeErrorResponse(w http.ResponseWriter, r *http.Request, err SteamIDError, context string) {
+func writeErrorResponse(w http.ResponseWriter, r *http.Request, err SteamIDError, responseOverride string, logContext string) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	lang := getLang(r)
@@ -104,13 +138,20 @@ func writeErrorResponse(w http.ResponseWriter, r *http.Request, err SteamIDError
 		msgKey = "conversion_failed"
 	}
 	w.WriteHeader(statusCode)
-	log.Printf("[ERROR] %s - Context: %s [%s]", err.Error(), context, r.RemoteAddr)
+
+	appErrorf("request failed: code=%s context=%s remote_addr=%s", err.Key(), logContext, r.RemoteAddr)
+
+	if responseOverride != "" {
+		writePlainTextBody(w, responseOverride)
+		return
+	}
+
 	translated := msg(msgKey, lang)
 	if translated == msgKey {
-		// Si no hay traducción, usa el mensaje en inglés del error
-		translated = err.Error()
+		translated = localizedErrorMessage(err, lang)
 	}
-	fmt.Fprint(w, translated)
+
+	writePlainTextBody(w, translated)
 }
 
 func writeSuccessResponse(w http.ResponseWriter, value string, nullterm bool) {
@@ -119,9 +160,9 @@ func writeSuccessResponse(w http.ResponseWriter, value string, nullterm bool) {
 	if nullterm {
 		value = value + "\x00"
 	}
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(value)))
+	w.Header().Set("Content-Length", strconv.Itoa(len(value)))
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(value))
+	writePlainTextBody(w, value)
 }
 
 func writeKeyValueResponse(w http.ResponseWriter, content string, nullterm bool) {
@@ -130,7 +171,7 @@ func writeKeyValueResponse(w http.ResponseWriter, content string, nullterm bool)
 	if nullterm {
 		content = content + "\x00"
 	}
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(content)))
+	w.Header().Set("Content-Length", strconv.Itoa(len(content)))
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(content))
+	writePlainTextBody(w, content)
 }

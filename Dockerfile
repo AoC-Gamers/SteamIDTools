@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 LABEL maintainer="lechuga"
 LABEL description="SteamID Conversion Service for Game Servers (Go)"
@@ -18,7 +18,7 @@ COPY go/ .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' \
     -a -installsuffix cgo \
-    -o steamid-service .
+    -o steamid-service ./cmd/steamid-service
 
 FROM alpine:3
 
@@ -28,7 +28,6 @@ RUN apk add --no-cache curl && \
 RUN adduser -D -s /bin/sh steamid
 
 COPY --from=builder /app/steamid-service /steamid-service
-COPY go/lang/*.json /lang/
 COPY healthcheck.sh /healthcheck.sh
 RUN chmod +x /steamid-service /healthcheck.sh
 

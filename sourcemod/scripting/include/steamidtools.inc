@@ -29,6 +29,10 @@
 #define STEAMID3_MIN_LENGTH	   8
 #define STEAMID64_BASE		   76561197960265728
 
+#if !defined STEAMIDTOOLS_SID2_UNIVERSE
+	#define STEAMIDTOOLS_SID2_UNIVERSE 1
+#endif
+
 #define API_SID64toAID    "/SID64toAID"
 #define API_SID64toSID2   "/SID64toSID2"
 #define API_SID64toSID3   "/SID64toSID3"
@@ -125,7 +129,7 @@ stock bool AccountIDToSteamID2(int iAccountId, char[] szBuffer, int iMaxlen)
 	int iY = iAccountId & 1;
 	int iZ = iAccountId >> 1;
 
-	Format(szBuffer, iMaxlen, "STEAM_0:%d:%d", iY, iZ);
+	Format(szBuffer, iMaxlen, "STEAM_%d:%d:%d", STEAMIDTOOLS_SID2_UNIVERSE, iY, iZ);
 	return true;
 }
 

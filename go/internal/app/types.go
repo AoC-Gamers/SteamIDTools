@@ -1,4 +1,4 @@
-package main
+package app
 
 type SteamIDError string
 
@@ -21,18 +21,20 @@ func (e SteamIDError) Error() string { return string(e) }
 func (e SteamIDError) Key() string   { return string(e) }
 
 const (
-	STEAMID64_BASE = 76561197960265728
+	STEAMID64_BASE = uint64(76561197960265728)
+	MaxAccountID   = uint64((1 << 32) - 1)
+	MaxSteamID64   = STEAMID64_BASE + MaxAccountID
 	SID2_UNIVERSE  = "1"
 )
 
 const (
-	EndpointSID64toAID   = "/SID64toAID"
-	EndpointSID64toSID2  = "/SID64toSID2"
-	EndpointSID64toSID3  = "/SID64toSID3"
-	EndpointAIDtoSID64   = "/AIDtoSID64"
-	EndpointSID2toSID64  = "/SID2toSID64"
-	EndpointSID3toSID64  = "/SID3toSID64"
-	EndpointHealth       = "/health"
+	EndpointSID64toAID  = "/SID64toAID"
+	EndpointSID64toSID2 = "/SID64toSID2"
+	EndpointSID64toSID3 = "/SID64toSID3"
+	EndpointAIDtoSID64  = "/AIDtoSID64"
+	EndpointSID2toSID64 = "/SID2toSID64"
+	EndpointSID3toSID64 = "/SID3toSID64"
+	EndpointHealth      = "/health"
 )
 
 type ConversionResult struct {
@@ -40,7 +42,12 @@ type ConversionResult struct {
 	Error SteamIDError
 }
 
+type BatchItemResult struct {
+	Input string
+	Value string
+	Error SteamIDError
+}
+
 type BatchResult struct {
-	Results map[string]string
-	Errors  map[string]SteamIDError
+	Items []BatchItemResult
 }

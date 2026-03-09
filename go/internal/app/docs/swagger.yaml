@@ -1,0 +1,221 @@
+basePath: /
+info:
+  contact: {}
+  description: |-
+    High-performance SteamID conversion service for game servers.
+    All responses are plain text. Batch responses use Valve KeyValue text format.
+  title: SteamIDTools API
+  version: 2.0.0
+paths:
+  /AIDtoSID64:
+    get:
+      description: Converts one AccountID value to SteamID64. Supports comma-separated
+        batch input via the steamid query parameter.
+      parameters:
+      - description: AccountID value or comma-separated AccountID batch
+        in: query
+        name: steamid
+        required: true
+        type: string
+      - description: Append a NUL terminator to the plain-text response
+        in: query
+        name: nullterm
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Converted SteamID64 or Valve KeyValue batch response
+          schema:
+            type: string
+        "400":
+          description: Validation error
+          schema:
+            type: string
+        "503":
+          description: Service unavailable
+          schema:
+            type: string
+      summary: Convert AccountID to SteamID64
+      tags:
+      - conversion
+  /SID2toSID64:
+    get:
+      description: Converts one SteamID2 value to SteamID64. Supports comma-separated
+        batch input via the steamid query parameter.
+      parameters:
+      - description: SteamID2 value or comma-separated SteamID2 batch
+        in: query
+        name: steamid
+        required: true
+        type: string
+      - description: Append a NUL terminator to the plain-text response
+        in: query
+        name: nullterm
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Converted SteamID64 or Valve KeyValue batch response
+          schema:
+            type: string
+        "400":
+          description: Validation error
+          schema:
+            type: string
+        "503":
+          description: Service unavailable
+          schema:
+            type: string
+      summary: Convert SteamID2 to SteamID64
+      tags:
+      - conversion
+  /SID3toSID64:
+    get:
+      description: Converts one SteamID3 value to SteamID64. Supports comma-separated
+        batch input via the steamid query parameter.
+      parameters:
+      - description: SteamID3 value or comma-separated SteamID3 batch
+        in: query
+        name: steamid
+        required: true
+        type: string
+      - description: Append a NUL terminator to the plain-text response
+        in: query
+        name: nullterm
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Converted SteamID64 or Valve KeyValue batch response
+          schema:
+            type: string
+        "400":
+          description: Validation error
+          schema:
+            type: string
+        "503":
+          description: Service unavailable
+          schema:
+            type: string
+      summary: Convert SteamID3 to SteamID64
+      tags:
+      - conversion
+  /SID64toAID:
+    get:
+      description: Converts one SteamID64 value to AccountID. Supports comma-separated
+        batch input via the steamid query parameter.
+      parameters:
+      - description: SteamID64 value or comma-separated SteamID64 batch
+        in: query
+        name: steamid
+        required: true
+        type: string
+      - description: Append a NUL terminator to the plain-text response
+        in: query
+        name: nullterm
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Converted AccountID or Valve KeyValue batch response
+          schema:
+            type: string
+        "400":
+          description: Validation error
+          schema:
+            type: string
+        "503":
+          description: Service unavailable
+          schema:
+            type: string
+      summary: Convert SteamID64 to AccountID
+      tags:
+      - conversion
+  /SID64toSID2:
+    get:
+      description: Converts one SteamID64 value to SteamID2. Supports comma-separated
+        batch input via the steamid query parameter.
+      parameters:
+      - description: SteamID64 value or comma-separated SteamID64 batch
+        in: query
+        name: steamid
+        required: true
+        type: string
+      - description: Append a NUL terminator to the plain-text response
+        in: query
+        name: nullterm
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Converted SteamID2 or Valve KeyValue batch response
+          schema:
+            type: string
+        "400":
+          description: Validation error
+          schema:
+            type: string
+        "503":
+          description: Service unavailable
+          schema:
+            type: string
+      summary: Convert SteamID64 to SteamID2
+      tags:
+      - conversion
+  /SID64toSID3:
+    get:
+      description: Converts one SteamID64 value to SteamID3. Supports comma-separated
+        batch input via the steamid query parameter.
+      parameters:
+      - description: SteamID64 value or comma-separated SteamID64 batch
+        in: query
+        name: steamid
+        required: true
+        type: string
+      - description: Append a NUL terminator to the plain-text response
+        in: query
+        name: nullterm
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Converted SteamID3 or Valve KeyValue batch response
+          schema:
+            type: string
+        "400":
+          description: Validation error
+          schema:
+            type: string
+        "503":
+          description: Service unavailable
+          schema:
+            type: string
+      summary: Convert SteamID64 to SteamID3
+      tags:
+      - conversion
+  /health:
+    get:
+      description: Returns the backend health status after a self-check conversion.
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: HEALTHY
+          schema:
+            type: string
+        "503":
+          description: UNHEALTHY
+          schema:
+            type: string
+      summary: Health check
+      tags:
+      - health
+schemes:
+- http
+swagger: "2.0"
