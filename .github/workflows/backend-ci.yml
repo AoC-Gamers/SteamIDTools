@@ -8,6 +8,7 @@ on:
       - Dockerfile
       - Makefile
       - healthcheck.sh
+      - scripts/**
       - go/**
   pull_request:
     paths:
@@ -16,6 +17,7 @@ on:
       - Dockerfile
       - Makefile
       - healthcheck.sh
+      - scripts/**
       - go/**
   workflow_dispatch:
 
@@ -28,7 +30,6 @@ permissions:
 
 env:
   GO_VERSION: 1.26.1
-  GOLANGCI_LINT_VERSION: v2.4.0
 
 jobs:
   backend:
@@ -44,6 +45,11 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
           cache-dependency-path: go/go.sum
+
+      - name: Install CI tools
+        run: |
+          make go-tools NANCY_VERSION=
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Verify Go module files
         run: |
@@ -64,11 +70,7 @@ jobs:
         run: make test
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: ${{ env.GOLANGCI_LINT_VERSION }}
-          working-directory: go
-          args: ./...
+        run: make lint
 
       - name: Build backend binary
         run: |

@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - .github/workflows/sourcemod-build.yml
-      - scripts/ci/build-sourcemod.sh
+      - scripts/ci-build-sourcemod.sh
       - sourcemod/**
   pull_request:
     paths:
       - .github/workflows/sourcemod-build.yml
-      - scripts/ci/build-sourcemod.sh
+      - scripts/ci-build-sourcemod.sh
       - sourcemod/**
   workflow_dispatch:
 
@@ -34,10 +34,10 @@ jobs:
       - name: Install SourceMod build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes curl tar zip
+          sudo apt-get install --yes curl tar
 
       - name: Compile SourceMod plugin
-        run: bash ./scripts/ci/build-sourcemod.sh
+        run: bash ./scripts/ci-build-sourcemod.sh
 
       - name: Upload SourceMod artifacts
         uses: actions/upload-artifact@v4
@@ -46,6 +46,5 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           path: |
-            dist/sourcemod/compile.log
-            dist/sourcemod/steamidtools.smx
-            dist/sourcemod/steamidtools-package.zip
+            dist/sourcemod/artifact/compile.log
+            dist/sourcemod/artifact/sourcemod/**

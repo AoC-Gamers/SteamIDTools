@@ -8,12 +8,14 @@ on:
       - .github/workflows/backend-security.yml
       - Dockerfile
       - Makefile
+      - scripts/**
       - go/**
   pull_request:
     paths:
       - .github/workflows/backend-security.yml
       - Dockerfile
       - Makefile
+      - scripts/**
       - go/**
   schedule:
     - cron: "23 4 * * 1"

@@ -166,6 +166,7 @@ config.local.*
 # Test output
 test_results/
 *.test
+reports/
 
 # Backup files
 *.bak
@@ -179,7 +180,9 @@ pid/
 # Temporary directories
 tmp/
 temp/
+.tmp/
 
 # Ignorar binario compilado de Go
+/go/bin/
 /go/steamid-service
 /go/steamid-service.exe
