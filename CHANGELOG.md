@@ -10,8 +10,8 @@ Este repositorio usa versionado diferenciado por componente:
 
 | Component | Version |
 |-----------|---------|
-| Backend Go | 2.0.0 |
-| SourceMod Plugin | 2.0.0 |
+| Backend Go | 2.1.0 |
+| SourceMod Plugin | 2.1.0 |
 | HTTP API | v1 |
 
 ## Compatibility
@@ -27,6 +27,12 @@ Este repositorio usa versionado diferenciado por componente:
 - Incrementa `major` cuando rompes compatibilidad del componente.
 - Si rompes el contrato HTTP, incrementa el `major` de la API y documenta la compatibilidad mínima entre backend y plugin.
 - Backend y SourceMod no necesitan publicar la misma versión salvo que quieras alinear releases por conveniencia.
+
+## Tagging Convention
+
+- Backend Go: `backend/vX.Y.Z`
+- SourceMod Plugin/Include: `sourcemod/vX.Y.Z`
+- Los tags deben coincidir con la versión declarada en el componente antes de publicar el release.
 
 ## Component Changelogs
 

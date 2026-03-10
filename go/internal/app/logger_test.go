@@ -117,6 +117,9 @@ func TestLogStartupEmitsStructuredEvents(t *testing.T) {
 	if got := first["public_base_url"]; got != "http://localhost:80" {
 		t.Fatalf("unexpected public_base_url %v", got)
 	}
+	if got := first["version"]; got != Version {
+		t.Fatalf("unexpected version %v", got)
+	}
 
 	foundEndpoints := false
 	foundReady := false

@@ -6,7 +6,7 @@ import (
 )
 
 // @title SteamIDTools API
-// @version 2.0.0
+// @version 2.1.0
 // @description High-performance SteamID conversion service for game servers.
 // @description All responses are plain text. Batch responses use Valve KeyValue text format.
 // @BasePath /

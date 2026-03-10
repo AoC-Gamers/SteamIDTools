@@ -107,6 +107,7 @@ func logStartup(baseURL, host, port, backendLang, sid2Universe string, debugMode
 	endpoints := startupEndpoints(baseURL, fmt.Sprintf("STEAM_%s:0:11101", sid2Universe))
 
 	appInfoEvent().
+		Str("version", Version).
 		Str("host", host).
 		Str("port", port).
 		Str("listen_addr", fmt.Sprintf("%s:%s", host, port)).
@@ -159,6 +160,7 @@ func Run() error {
 	docs.SwaggerInfo.BasePath = "/"
 	docs.SwaggerInfo.Schemes = []string{"http"}
 	docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", publicHost(host), port)
+	docs.SwaggerInfo.Version = Version
 
 	sid2Universe := appCfg.SID2Universe
 	baseURL := fmt.Sprintf("http://%s:%s", publicHost(host), port)

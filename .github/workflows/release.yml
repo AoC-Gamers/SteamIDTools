@@ -5,7 +5,8 @@ on:
     branches:
       - main
     tags:
-      - "**"
+      - backend/v*
+      - sourcemod/v*
   workflow_dispatch:
 
 concurrency:
@@ -21,7 +22,24 @@ env:
   SOURCEMOD_ARCHIVE_URL: https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git7223-linux.tar.gz
 
 jobs:
-  publish-image:
+  prepare-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    outputs:
+      component: ${{ steps.release.outputs.component }}
+      version: ${{ steps.release.outputs.version }}
+      release_name: ${{ steps.release.outputs.release_name }}
+      prerelease: ${{ steps.release.outputs.prerelease }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Resolve release tag
+        id: release
+        run: bash ./scripts/ci-resolve-release.sh "${GITHUB_REF_NAME}"
+
+  publish-latest-image:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -62,8 +80,52 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  publish-versioned-image:
+    if: startsWith(github.ref, 'refs/tags/backend/v')
+    needs: prepare-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Compute image name
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/steamidtools" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and publish versioned image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.image.outputs.name }}:${{ needs.prepare-release.outputs.version }}
+          labels: |
+            org.opencontainers.image.title=steamidtools
+            org.opencontainers.image.description=SteamID Conversion Service for Game Servers (Go)
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ needs.prepare-release.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   create-release:
     if: startsWith(github.ref, 'refs/tags/')
+    needs: prepare-release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -73,6 +135,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Set up Go
+        if: needs.prepare-release.outputs.component == 'backend'
         uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -80,28 +143,30 @@ jobs:
           cache-dependency-path: go/go.sum
 
       - name: Install SourceMod build dependencies
+        if: needs.prepare-release.outputs.component == 'sourcemod'
         run: |
           sudo apt-get update
           sudo apt-get install --yes curl tar
 
       - name: Build backend binary
+        if: needs.prepare-release.outputs.component == 'backend'
         run: make build
 
       - name: Build SourceMod artifact
+        if: needs.prepare-release.outputs.component == 'sourcemod'
         run: bash ./scripts/ci-build-sourcemod.sh
 
       - name: Package release assets
+        env:
+          RELEASE_COMPONENT: ${{ needs.prepare-release.outputs.component }}
         run: bash ./scripts/ci-package-release-assets.sh
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          name: ${{ needs.prepare-release.outputs.release_name }}
           generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          prerelease: ${{ needs.prepare-release.outputs.prerelease == 'true' }}
           fail_on_unmatched_files: true
-          files: |
-            dist/release/steamid-service-linux-amd64.tar.gz
-            dist/release/steamidtools-sourcemod-release.zip
-            dist/release/sha256sums.txt
+          files: dist/release/*

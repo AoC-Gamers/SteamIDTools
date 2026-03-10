@@ -5,7 +5,7 @@ info:
     High-performance SteamID conversion service for game servers.
     All responses are plain text. Batch responses use Valve KeyValue text format.
   title: SteamIDTools API
-  version: 2.0.0
+  version: 2.1.0
 paths:
   /AIDtoSID64:
     get:

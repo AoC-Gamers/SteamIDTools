@@ -58,6 +58,7 @@ http://localhost:80/swagger/index.html
 - [Changelog General](./CHANGELOG.md)
 - [Changelog Backend Go](./go/CHANGELOG.md)
 - [Changelog SourceMod](./sourcemod/CHANGELOG.md)
+- Tags de release: `backend/vX.Y.Z` y `sourcemod/vX.Y.Z`
 
 ## Tooling
 
