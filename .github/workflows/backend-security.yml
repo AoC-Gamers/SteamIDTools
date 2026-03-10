@@ -1,0 +1,124 @@
+name: Backend Security
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/backend-security.yml
+      - Dockerfile
+      - Makefile
+      - go/**
+  pull_request:
+    paths:
+      - .github/workflows/backend-security.yml
+      - Dockerfile
+      - Makefile
+      - go/**
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: backend-security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  GO_VERSION: 1.26.1
+  GOSEC_VERSION: v2.23.0
+
+jobs:
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v4
+
+  gosec:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go/go.sum
+
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@${{ env.GOSEC_VERSION }}
+
+      - name: Generate gosec SARIF
+        run: |
+          cd go
+          "$(go env GOPATH)/bin/gosec" -no-fail -fmt sarif -out ../gosec.sarif ./cmd/steamid-service/... ./internal/app/...
+
+      - name: Upload gosec SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: gosec.sarif
+
+      - name: Enforce gosec findings
+        run: |
+          cd go
+          "$(go env GOPATH)/bin/gosec" ./cmd/steamid-service/... ./internal/app/...
+
+  govulncheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go/go.sum
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run govulncheck
+        run: |
+          cd go
+          "$(go env GOPATH)/bin/govulncheck" ./...
+
+  codeql:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: go
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go/go.sum
+
+      - name: Build backend for analysis
+        run: cd go && go build ./cmd/steamid-service
+
+      - name: Analyze with CodeQL
+        uses: github/codeql-action/analyze@v4

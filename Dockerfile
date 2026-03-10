@@ -1,4 +1,4 @@
-FROM golang:1.26-alpine AS builder
+FROM golang:1.26.1-alpine AS builder
 
 LABEL maintainer="lechuga"
 LABEL description="SteamID Conversion Service for Game Servers (Go)"

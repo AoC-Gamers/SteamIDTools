@@ -1,0 +1,51 @@
+name: SourceMod Build
+
+on:
+  push:
+    paths:
+      - .github/workflows/sourcemod-build.yml
+      - scripts/ci/build-sourcemod.sh
+      - sourcemod/**
+  pull_request:
+    paths:
+      - .github/workflows/sourcemod-build.yml
+      - scripts/ci/build-sourcemod.sh
+      - sourcemod/**
+  workflow_dispatch:
+
+concurrency:
+  group: sourcemod-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  SOURCEMOD_ARCHIVE_URL: https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git7223-linux.tar.gz
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install SourceMod build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes curl tar zip
+
+      - name: Compile SourceMod plugin
+        run: bash ./scripts/ci/build-sourcemod.sh
+
+      - name: Upload SourceMod artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sourcemod-plugin-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/sourcemod/compile.log
+            dist/sourcemod/steamidtools.smx
+            dist/sourcemod/steamidtools-package.zip
