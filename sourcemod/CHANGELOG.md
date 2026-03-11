@@ -16,6 +16,12 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 - None.
 
+## [2.2.1]
+
+### Fixed
+
+- `steamidtools.inc` ahora declara correctamente el bloque `SharedPlugin` y marca los `natives` del plugin API como opcionales cuando se incluye sin `REQUIRE_PLUGIN`.
+
 ## [2.2.0]
 
 ### Added

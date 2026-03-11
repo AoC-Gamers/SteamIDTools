@@ -21,7 +21,7 @@ public Plugin myinfo =
 	name		= "SteamID Tools",
 	author		= "lechuga",
 	description = "SteamIDTools API plugin supporting SteamWorks and system2",
-	version		= "2.2.0",
+	version		= "2.2.1",
 	url			= "https://github.com/AoC-Gamers/SteamIDTools"
 };
 

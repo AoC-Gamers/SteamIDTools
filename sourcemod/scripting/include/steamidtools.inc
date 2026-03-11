@@ -49,6 +49,27 @@
 #define API_SID3toSID64   "/SID3toSID64"
 #define API_Health        "/health"
 
+public SharedPlugin __pl_steamidtools =
+{
+	name = STEAMIDTOOLS_LIBRARY,
+	file = "steamidtools.smx",
+#if defined REQUIRE_PLUGIN
+	required = 1,
+#else
+	required = 0,
+#endif
+};
+
+#if !defined REQUIRE_PLUGIN
+public void __pl_steamidtools_SetNTVOptional()
+{
+	MarkNativeAsOptional("SteamIDTools_IsProviderAvailable");
+	MarkNativeAsOptional("SteamIDTools_GetApiBaseUrl");
+	MarkNativeAsOptional("SteamIDTools_RequestConversion");
+	MarkNativeAsOptional("SteamIDTools_RequestBatch");
+}
+#endif
+
 enum SteamIDToolsProvider
 {
 	SteamIDToolsProvider_Unknown = 0,
