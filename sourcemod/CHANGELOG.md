@@ -16,6 +16,18 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 - None.
 
+## [2.2.0]
+
+### Added
+
+- Plugin API online con `natives` y `forward` para que otros plugins consulten el backend sin implementar transporte HTTP.
+- Plugin demo separado para probar la API y mostrar integracion online/offline.
+
+### Changed
+
+- `steamidtools.sp` ahora actua como biblioteca/runtime de SourceMod en vez de registrar comandos de prueba.
+- La compilacion y los artefactos incluyen tanto el plugin API como el plugin demo.
+
 ## [2.1.0]
 
 ### Added

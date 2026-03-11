@@ -11,7 +11,7 @@ Este repositorio usa versionado diferenciado por componente:
 | Component | Version |
 |-----------|---------|
 | Backend Go | 2.1.0 |
-| SourceMod Plugin | 2.1.0 |
+| SourceMod Plugin | 2.2.0 |
 | HTTP API | v1 |
 
 ## Compatibility

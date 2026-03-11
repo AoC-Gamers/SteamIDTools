@@ -18,17 +18,32 @@ tar -xzf "$WORK_DIR/sourcemod.tar.gz" -C "$WORK_DIR"
 SOURCEMOD_DIR="$WORK_DIR"
 SPCOMP_BIN="$SOURCEMOD_DIR/addons/sourcemod/scripting/spcomp"
 PACKAGE_SM_DIR="$ARTIFACT_DIR/sourcemod"
+COMPILE_LOG="$ARTIFACT_DIR/compile.log"
+
+mkdir -p "$PACKAGE_SM_DIR/plugins"
+: > "$COMPILE_LOG"
 
 echo "Compiling steamidtools.sp..."
-mkdir -p "$PACKAGE_SM_DIR/plugins"
 "$SPCOMP_BIN" \
   "$ROOT_DIR/sourcemod/scripting/steamidtools.sp" \
   -i"$ROOT_DIR/sourcemod/scripting/include" \
   -o"$PACKAGE_SM_DIR/plugins/steamidtools.smx" \
-  2>&1 | tee "$ARTIFACT_DIR/compile.log"
+  2>&1 | tee -a "$COMPILE_LOG"
+
+echo "Compiling steamidtools_test.sp..."
+"$SPCOMP_BIN" \
+  "$ROOT_DIR/sourcemod/scripting/steamidtools_test.sp" \
+  -i"$ROOT_DIR/sourcemod/scripting/include" \
+  -o"$PACKAGE_SM_DIR/plugins/steamidtools_test.smx" \
+  2>&1 | tee -a "$COMPILE_LOG"
 
 if [[ ! -f "$PACKAGE_SM_DIR/plugins/steamidtools.smx" ]]; then
   echo "Compiled plugin was not generated." >&2
+  exit 1
+fi
+
+if [[ ! -f "$PACKAGE_SM_DIR/plugins/steamidtools_test.smx" ]]; then
+  echo "Compiled test plugin was not generated." >&2
   exit 1
 fi
 

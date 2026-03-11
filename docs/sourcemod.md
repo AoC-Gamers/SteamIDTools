@@ -3,12 +3,14 @@
 El proyecto incluye dos cosas para SourceMod:
 
 - Un include reutilizable con conversiones offline.
-- Un plugin de ejemplo/uso real con transporte HTTP por `SteamWorks` y `system2`.
+- Un plugin API (`steamidtools.sp`) para conversiones online contra el backend.
+- Un plugin demo (`steamidtools_test.sp`) que consume esa API.
 
 ## Archivos principales
 
 - `sourcemod/scripting/include/steamidtools.inc`
 - `sourcemod/scripting/steamidtools.sp`
+- `sourcemod/scripting/steamidtools_test.sp`
 - `sourcemod/scripting/steamidtools/steamidtools_steamworks.sp`
 - `sourcemod/scripting/steamidtools/steamidtools_system2.sp`
 
@@ -34,17 +36,39 @@ Si necesitas otro valor en compile-time:
 #include <steamidtools>
 ```
 
-## Plugin HTTP
+## Plugin API HTTP
 
-El plugin principal expone comandos de prueba:
+`steamidtools.sp` ya no es el plugin de prueba. Ahora:
 
-- `sm_steamidtools <offline|steamworks|system2>`
-- `sm_steamidtools_batch <steamworks|system2>`
+- registra la library `steamidtools`
+- expone `natives` para encolar requests online
+- emite un `forward` cuando la respuesta llega
+- resuelve internamente el transporte con `SteamWorks` o `system2`
+
+Natives expuestos:
+
+- `SteamIDTools_IsProviderAvailable`
+- `SteamIDTools_GetApiBaseUrl`
+- `SteamIDTools_RequestConversion`
+- `SteamIDTools_RequestBatch`
+
+Forward expuesto:
+
+- `SteamIDTools_OnRequestFinished`
 
 Config:
 
 - ConVar `steamidtools_api_base_url`
 - Default actual: `http://localhost:80`
+
+## Plugin demo
+
+`steamidtools_test.sp` es el consumidor de ejemplo de la API.
+
+Comandos:
+
+- `sm_steamidtools <offline|steamworks|system2>`
+- `sm_steamidtools_batch <steamworks|system2>`
 
 ## Mejoras ya aplicadas
 
@@ -73,35 +97,57 @@ public Action CmdOfflineConversion(int client, int args)
 }
 ```
 
-## Ejemplo SteamWorks
+## Ejemplo API online
 
 ```sourcepawn
 #include <sourcemod>
-#include <steamworks>
+#include <steamidtools>
+
+StringMap g_RequestClients;
+
+public void OnPluginStart()
+{
+    g_RequestClients = new StringMap();
+}
 
 public Action CmdExample(int client, int args)
 {
-    char url[256];
-    Format(url, sizeof(url), "http://localhost:80/SID64toAID?steamid=%s", "76561197960287930");
+    int requestId = SteamIDTools_RequestConversion(
+        SteamIDToolsProvider_SteamWorks,
+        API_SID64toAID,
+        "76561197960287930",
+        "Lookup"
+    );
 
-    Handle request = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
-    SteamWorks_SetHTTPRequestContextValue(request, GetClientUserId(client));
-    SteamWorks_SendHTTPRequest(request);
+    if (requestId > 0)
+    {
+        char key[16];
+        IntToString(requestId, key, sizeof(key));
+        g_RequestClients.SetValue(key, GetClientUserId(client));
+    }
+
     return Plugin_Handled;
 }
-```
 
-## Ejemplo System2
-
-```sourcepawn
-#include <sourcemod>
-#include <system2>
-
-public Action CmdExample(int client, int args)
+public void SteamIDTools_OnRequestFinished(int requestId, SteamIDToolsProvider provider, bool success, bool batch, const char[] endpoint, const char[] input, const char[] result, const char[] tag)
 {
-    System2HTTPRequest req = new System2HTTPRequest(OnResponse, "http://localhost:80/SID64toSID2?steamid=76561197960287930");
-    req.Any = GetClientUserId(client);
-    req.GET();
-    return Plugin_Handled;
+    char key[16];
+    IntToString(requestId, key, sizeof(key));
+
+    int userId = 0;
+    if (!g_RequestClients.GetValue(key, userId))
+    {
+        return;
+    }
+
+    g_RequestClients.Remove(key);
+
+    int client = GetClientOfUserId(userId);
+    if (client <= 0 || !IsClientInGame(client))
+    {
+        return;
+    }
+
+    ReplyToCommand(client, "[STEAMIDTOOLS] %s: %s", tag, result);
 }
 ```

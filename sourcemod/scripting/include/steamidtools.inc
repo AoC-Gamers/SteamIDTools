@@ -21,13 +21,21 @@
 #endif
 #define _steamidtools_included
 
+#include <sourcemod>
 #include <clients>
+
+#define STEAMIDTOOLS_LIBRARY            "steamidtools"
 
 #define ACCOUNTID_LENGTH	   16
 #define STEAMID64_EXACT_LENGTH 17
 #define STEAMID2_MIN_LENGTH	   11
 #define STEAMID3_MIN_LENGTH	   8
 #define STEAMID64_BASE		   76561197960265728
+
+#define STEAMIDTOOLS_MAX_ENDPOINT_LENGTH 32
+#define STEAMIDTOOLS_MAX_REQUEST_LENGTH  1024
+#define STEAMIDTOOLS_MAX_RESULT_LENGTH   4096
+#define STEAMIDTOOLS_MAX_TAG_LENGTH      64
 
 #if !defined STEAMIDTOOLS_SID2_UNIVERSE
 	#define STEAMIDTOOLS_SID2_UNIVERSE 1
@@ -40,6 +48,13 @@
 #define API_SID2toSID64   "/SID2toSID64"
 #define API_SID3toSID64   "/SID3toSID64"
 #define API_Health        "/health"
+
+enum SteamIDToolsProvider
+{
+	SteamIDToolsProvider_Unknown = 0,
+	SteamIDToolsProvider_SteamWorks,
+	SteamIDToolsProvider_System2
+}
 
 /**
  * Enum for different SteamID formats
@@ -423,3 +438,64 @@ stock SteamIDFormat DetectSteamIDFormat(const char[] szSteamId)
 
 	return STEAMID_FORMAT_UNKNOWN;
 }
+
+/**
+ * Returns true when the SteamIDTools API plugin library is loaded.
+ */
+stock bool SteamIDTools_IsLibraryAvailable()
+{
+	return LibraryExists(STEAMIDTOOLS_LIBRARY);
+}
+
+/**
+ * Returns true if the requested online provider is available in the API plugin.
+ *
+ * @param provider      Provider enum value
+ * @return              true when the provider can execute HTTP requests
+ */
+native bool SteamIDTools_IsProviderAvailable(SteamIDToolsProvider provider);
+
+/**
+ * Gets the configured SteamIDTools backend base URL from the API plugin.
+ *
+ * @param szBuffer      Output buffer
+ * @param iMaxLen       Output buffer length
+ * @return              true on success, false otherwise
+ */
+native bool SteamIDTools_GetApiBaseUrl(char[] szBuffer, int iMaxLen);
+
+/**
+ * Queues a single online backend request.
+ *
+ * @param provider      Provider to use (`SteamWorks` or `system2`)
+ * @param szEndpoint    API endpoint, usually one of the `API_*` constants
+ * @param szSteamId     Input value sent as `steamid=...`
+ * @param szTag         Opaque caller tag returned in the completion forward
+ * @return              Request id greater than zero if queued, otherwise zero
+ */
+native int SteamIDTools_RequestConversion(SteamIDToolsProvider provider, const char[] szEndpoint, const char[] szSteamId, const char[] szTag = "");
+
+/**
+ * Queues a batch online backend request.
+ *
+ * @param provider      Provider to use (`SteamWorks` or `system2`)
+ * @param szEndpoint    API endpoint, usually one of the `API_*` constants
+ * @param szBatch       Comma-separated batch sent as `steamid=...`
+ * @param szTag         Opaque caller tag returned in the completion forward
+ * @return              Request id greater than zero if queued, otherwise zero
+ */
+native int SteamIDTools_RequestBatch(SteamIDToolsProvider provider, const char[] szEndpoint, const char[] szBatch, const char[] szTag = "");
+
+/**
+ * Fired when an online backend request finishes.
+ *
+ * @param iRequestId    Request id returned by the native that queued it
+ * @param provider      Provider that executed the request
+ * @param bSuccess      true on success, false on failure
+ * @param bBatch        true for batch requests
+ * @param szEndpoint    Endpoint used for the request
+ * @param szInput       Original input sent to the backend
+ * @param szResult      Response body on success, error text on failure
+ * @param szTag         Opaque caller tag passed to the request native
+ */
+forward void SteamIDTools_OnRequestFinished(int iRequestId, SteamIDToolsProvider provider, bool bSuccess, bool bBatch, const char[] szEndpoint, const char[] szInput, const char[] szResult, const char[] szTag);
