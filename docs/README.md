@@ -12,9 +12,9 @@ Esta carpeta concentra la documentacion operativa y tecnica del proyecto.
 
 ## Referencias Adicionales
 
-- [Changelog General](../CHANGELOG.md)
 - [Changelog Backend Go](../go/CHANGELOG.md)
 - [Changelog SourceMod](../sourcemod/CHANGELOG.md)
+- [Versionado y Tags](../README.md)
 
 ## Componentes
 

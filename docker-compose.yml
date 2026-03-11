@@ -1,6 +1,6 @@
 services:
   steamid-service:
-    image: ghcr.io/aoc-gamers/steamidtools:latest
+    image: ghcr.io/aoc-gamers/steamidtools:${STEAMIDTOOLS_IMAGE_TAG:-latest}
     container_name: ${CONTAINER_NAME:-steamid-service}
     env_file:
       - .env

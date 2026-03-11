@@ -56,10 +56,34 @@ http://localhost:80/swagger/index.html
 
 ## Changelog y Versionado
 
-- [Changelog General](./CHANGELOG.md)
 - [Changelog Backend Go](./go/CHANGELOG.md)
 - [Changelog SourceMod](./sourcemod/CHANGELOG.md)
-- Tags de release: `backend/vX.Y.Z` y `sourcemod/vX.Y.Z`
+
+Este repositorio usa versionado diferenciado por componente:
+
+- Backend Go: versionado independiente con SemVer
+- Plugin/Include SourceMod: versionado independiente con SemVer
+- API HTTP: compatibilidad logica versionada por major
+
+Compatibilidad:
+
+| HTTP API | Backend Go | SourceMod Plugin |
+|----------|------------|------------------|
+| v1 | 2.x | 2.x |
+
+Reglas:
+
+- Incrementa `patch` cuando hay fixes, logging, tests, documentacion o mejoras internas sin cambio compatible-visible
+- Incrementa `minor` cuando agregas funcionalidad compatible
+- Incrementa `major` cuando rompes compatibilidad del componente
+- Si rompes el contrato HTTP, incrementa el `major` de la API y documenta la compatibilidad minima entre backend y plugin
+- Backend y SourceMod no necesitan publicar la misma version salvo que quieras alinear releases por conveniencia
+
+Tags de release:
+
+- Backend Go: `backend/vX.Y.Z`
+- SourceMod Plugin/Include: `sourcemod/vX.Y.Z`
+- Los tags deben coincidir con la version declarada en el componente antes de publicar el release
 
 ## Tooling
 

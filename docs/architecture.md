@@ -52,4 +52,4 @@ Responsabilidades:
 
 ## Versionado
 
-El repo usa versionado diferenciado por componente. Ver [CHANGELOG.md](../CHANGELOG.md).
+El repo usa versionado diferenciado por componente. Ver [README.md](../README.md) y los changelogs locales de [Backend Go](../go/CHANGELOG.md) y [SourceMod](../sourcemod/CHANGELOG.md).
