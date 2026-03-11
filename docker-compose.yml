@@ -2,6 +2,8 @@ services:
   steamid-service:
     image: ghcr.io/aoc-gamers/steamidtools:latest
     container_name: ${CONTAINER_NAME:-steamid-service}
+    env_file:
+      - .env
     ports:
       - "${PORT:-80}:${PORT:-80}"
     environment:
