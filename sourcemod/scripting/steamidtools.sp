@@ -88,7 +88,7 @@ public void OnPluginStart()
 {
 	g_hApiBaseUrl = CreateConVar("steamidtools_api_base_url", "http://localhost:80", "Base URL for SteamIDTools HTTP requests", FCVAR_NONE);
 	g_hHealthCheckInterval = CreateConVar("steamidtools_health_check_interval", "60.0", "Interval in seconds between backend health checks. Set to 0 to disable periodic checks.", FCVAR_NONE);
-	g_hDebugMask = CreateConVar("steamidtools_debug_mask", "0", "Debug mask for SteamIDTools. 1=general, 2=request, 4=health, 8=provider", FCVAR_NONE);
+	g_hDebugMask = CreateConVar("steamidtools_debug_mask", "0", "Debug mask for SteamIDTools. 1=general, 2=request, 4=health, 8=provider (all=15)", FCVAR_NONE);
 
 	AutoExecConfig(true, "steamidtools");
 	g_iNextRequestId = 0;

@@ -7,6 +7,7 @@ RELEASE_DIR="$ROOT_DIR/dist/release"
 RELEASE_COMPONENT="${RELEASE_COMPONENT:-all}"
 BACKEND_BINARY="${BACKEND_BINARY:-$ROOT_DIR/go/bin/steamid-service}"
 SOURCEMOD_ARTIFACT_DIR="${SOURCEMOD_ARTIFACT_DIR:-$ROOT_DIR/dist/sourcemod/artifact}"
+RELEASE_VERSION="${RELEASE_VERSION:-latest}"
 
 rm -rf "$RELEASE_DIR"
 mkdir -p "$RELEASE_DIR"
@@ -19,12 +20,14 @@ if [[ "$RELEASE_COMPONENT" == "backend" || "$RELEASE_COMPONENT" == "all" ]]; the
     exit 1
   fi
 
-  cp "$BACKEND_BINARY" "$RELEASE_DIR/steamid-service-linux-amd64"
+  backend_asset_base="steamid-service-linux-amd64-${RELEASE_VERSION}"
+  cp "$BACKEND_BINARY" "$RELEASE_DIR/$backend_asset_base"
   (
     cd "$RELEASE_DIR"
-    tar -czf steamid-service-linux-amd64.tar.gz steamid-service-linux-amd64
+    tar -czf "${backend_asset_base}.tar.gz" "$backend_asset_base"
   )
-  artifacts+=("steamid-service-linux-amd64.tar.gz")
+  rm -f "$RELEASE_DIR/$backend_asset_base"
+  artifacts+=("${backend_asset_base}.tar.gz")
 fi
 
 if [[ "$RELEASE_COMPONENT" == "sourcemod" || "$RELEASE_COMPONENT" == "all" ]]; then
@@ -33,7 +36,9 @@ if [[ "$RELEASE_COMPONENT" == "sourcemod" || "$RELEASE_COMPONENT" == "all" ]]; t
     exit 1
   fi
 
-  python3 - "$SOURCEMOD_ARTIFACT_DIR" "$RELEASE_DIR/steamidtools-sourcemod-release.zip" <<'PY'
+  sourcemod_asset="steamidtools-sourcemod-${RELEASE_VERSION}.zip"
+
+  python3 - "$SOURCEMOD_ARTIFACT_DIR" "$RELEASE_DIR/$sourcemod_asset" <<'PY'
 import os
 import sys
 import zipfile
@@ -52,7 +57,7 @@ with zipfile.ZipFile(out_file, "w", zipfile.ZIP_DEFLATED) as zf:
             arcname = os.path.relpath(path, src_dir)
             zf.write(path, arcname)
 PY
-  artifacts+=("steamidtools-sourcemod-release.zip")
+  artifacts+=("$sourcemod_asset")
 fi
 
 if [[ ${#artifacts[@]} -eq 0 ]]; then
