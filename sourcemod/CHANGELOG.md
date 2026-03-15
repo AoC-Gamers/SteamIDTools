@@ -16,6 +16,38 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 - None.
 
+## [2.3.1]
+
+### Added
+
+- Sistema de debug del plugin con `steamidtools_debug_mask` y comando admin `sm_steamidtools_debug`.
+- Trazas utiles para depurar arranque, providers, requests HTTP, health checks y cambios de estado del backend.
+
+### Changed
+
+- El refresco principal del estado del backend ahora se apoya en `OnConfigsExecuted()` y en el resultado de las requests reales.
+- `steamidtools_health_check_interval` queda como respaldo opcional; `0` desactiva el timer periodico.
+- Las requests online exitosas marcan el backend como `online` y las fallidas como `offline`.
+
+## [2.3.0]
+
+### Added
+
+- API publica de health checks para el backend con:
+  - `SteamIDTools_GetBackendStatus`
+  - `SteamIDTools_IsProviderReady`
+  - `SteamIDTools_RequestHealthCheck`
+  - `SteamIDTools_GetBackendStatusMessage`
+  - `SteamIDTools_OnBackendStatusChanged`
+- Health checks reales a `GET /health` para `SteamWorks` y `system2`.
+- Comando de prueba `sm_steamidtools_health <steamworks|system2> [refresh]` en `steamidtools_test.sp`.
+- Include compartido `steamidtools_helpers.inc` para reconstruccion de identidades en comandos.
+
+### Changed
+
+- `steamidtools.inc` sube a `2.3.0` y expone el nuevo contrato de estado del backend.
+- El plugin cachea el estado `unknown|online|offline` por provider para que otros plugins puedan decidir si el backend esta listo antes de encolar conversiones.
+
 ## [2.2.1]
 
 ### Fixed

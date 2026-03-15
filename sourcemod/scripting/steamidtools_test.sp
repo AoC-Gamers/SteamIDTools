@@ -1,5 +1,6 @@
 #include <sourcemod>
 #include <steamidtools>
+#include <steamidtools_helpers>
 
 #define ISGABENEWEL "76561197960287930"
 
@@ -48,7 +49,7 @@ public Plugin myinfo =
 	name		= "SteamID Tools Test",
 	author		= "lechuga",
 	description = "Test plugin for the SteamIDTools API",
-	version		= "2.2.1",
+	version		= "2.3.0",
 	url			= "https://github.com/AoC-Gamers/SteamIDTools"
 };
 
@@ -61,6 +62,8 @@ public void OnPluginStart()
 
 	RegConsoleCmd("sm_steamidtools", Command_Test, "Show available SteamID conversion methods");
 	RegConsoleCmd("sm_steamidtools_batch", Command_Batch, "Test batch conversion with explicit extension argument");
+	RegConsoleCmd("sm_steamidtools_convert", Command_Convert, "Convert a supplied identity: sm_steamidtools_convert <offline|steamworks|system2> <identity>");
+	RegConsoleCmd("sm_steamidtools_health", Command_Health, "Show or refresh backend health: sm_steamidtools_health <steamworks|system2> [refresh]");
 }
 
 /**
@@ -92,6 +95,39 @@ bool IsValidClient(int iClient)
 	return (iClient > 0 && iClient <= MaxClients && IsClientInGame(iClient) && !IsFakeClient(iClient));
 }
 
+void GetBackendStatusName(SteamIDToolsBackendStatus status, char[] szBuffer, int iMaxLen)
+{
+	switch (status)
+	{
+		case SteamIDToolsBackendStatus_Online:
+		{
+			strcopy(szBuffer, iMaxLen, "online");
+		}
+		case SteamIDToolsBackendStatus_Offline:
+		{
+			strcopy(szBuffer, iMaxLen, "offline");
+		}
+		default:
+		{
+			strcopy(szBuffer, iMaxLen, "unknown");
+		}
+	}
+}
+
+void ReplyToTarget(int iClient, const char[] szFormat, any ...)
+{
+	char szBuffer[512];
+	VFormat(szBuffer, sizeof(szBuffer), szFormat, 3);
+
+	if (IsValidClient(iClient))
+	{
+		ReplyToCommand(iClient, "%s", szBuffer);
+		return;
+	}
+
+	PrintToServer("%s", szBuffer);
+}
+
 /**
  * Returns a readable provider name for chat output.
  */
@@ -121,7 +157,7 @@ void TrackRequestClient(int iRequestId, int iClient)
 {
 	char szRequestId[16];
 	IntToString(iRequestId, szRequestId, sizeof(szRequestId));
-	g_hRequestClients.SetValue(szRequestId, GetClientUserId(iClient));
+	g_hRequestClients.SetValue(szRequestId, IsValidClient(iClient) ? GetClientUserId(iClient) : 0);
 }
 
 /**
@@ -139,8 +175,106 @@ bool ResolveTrackedRequestClient(int iRequestId, int &iClient)
 	}
 
 	g_hRequestClients.Remove(szRequestId);
+	if (iUserId == 0)
+	{
+		iClient = 0;
+		return true;
+	}
+
 	iClient = GetClientOfUserId(iUserId);
 	return IsValidClient(iClient);
+}
+
+public Action Command_Health(int iClient, int iArgs)
+{
+	if (!SteamIDTools_IsLibraryAvailable())
+	{
+		ReplyToTarget(iClient, "[STEAMIDTOOLS] SteamIDTools API plugin not loaded");
+		return Plugin_Handled;
+	}
+
+	if (iArgs < 1)
+	{
+		ReplyToTarget(iClient, "[STEAMIDTOOLS] Use: sm_steamidtools_health <steamworks|system2> [refresh]");
+		return Plugin_Handled;
+	}
+
+	char szArg[32];
+	GetCmdArg(1, szArg, sizeof(szArg));
+
+	SteamIDToolsProvider provider;
+	if (!TryParseProvider(szArg, provider))
+	{
+		ReplyToTarget(iClient, "[STEAMIDTOOLS] Use: sm_steamidtools_health <steamworks|system2> [refresh]");
+		return Plugin_Handled;
+	}
+
+	char szProviderName[16];
+	char szStatusName[16];
+	char szMessage[128];
+	SteamIDToolsBackendStatus status = SteamIDTools_GetBackendStatus(provider);
+	bool bLoaded = SteamIDTools_IsProviderAvailable(provider);
+	bool bReady = SteamIDTools_IsProviderReady(provider);
+
+	GetProviderName(provider, szProviderName, sizeof(szProviderName));
+	GetBackendStatusName(status, szStatusName, sizeof(szStatusName));
+	SteamIDTools_GetBackendStatusMessage(provider, szMessage, sizeof(szMessage));
+
+	ReplyToTarget(iClient, "[STEAMIDTOOLS] %s loaded=%d ready=%d backend=%s message=%s", szProviderName, bLoaded ? 1 : 0, bReady ? 1 : 0, szStatusName, szMessage);
+
+	if (iArgs >= 2)
+	{
+		char szMode[32];
+		GetCmdArg(2, szMode, sizeof(szMode));
+		TrimString(szMode);
+		StripQuotes(szMode);
+
+		if (StrEqual(szMode, "refresh", false))
+		{
+			ReplyToTarget(iClient, "[STEAMIDTOOLS] %s health refresh %s", szProviderName, SteamIDTools_RequestHealthCheck(provider) ? "queued" : "skipped");
+		}
+	}
+
+	return Plugin_Handled;
+}
+
+public Action Command_Convert(int iClient, int iArgs)
+{
+	if (iArgs < 2)
+	{
+		ReplyToCommand(iClient, "[STEAMIDTOOLS] Use: sm_steamidtools_convert <offline|steamworks|system2> <identity>");
+		return Plugin_Handled;
+	}
+
+	char szMode[32];
+	char szIdentity[MAX_AUTHID_LENGTH];
+	int iNextArg = 0;
+	GetCmdArg(1, szMode, sizeof(szMode));
+	TrimString(szMode);
+	StripQuotes(szMode);
+	SteamIDTools_TryGetIdentityFromCmdArgs(2, iArgs, szIdentity, sizeof(szIdentity), iNextArg);
+
+	if (StrEqual(szMode, "offline", false))
+	{
+		SteamIDTools_ConvertIdentityOffline(iClient, szIdentity);
+		return Plugin_Handled;
+	}
+
+	if (!SteamIDTools_IsLibraryAvailable())
+	{
+		ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamIDTools API plugin not loaded");
+		return Plugin_Handled;
+	}
+
+	SteamIDToolsProvider provider;
+	if (!TryParseProvider(szMode, provider))
+	{
+		ReplyToCommand(iClient, "[STEAMIDTOOLS] Use: sm_steamidtools_convert <offline|steamworks|system2> <identity>");
+		return Plugin_Handled;
+	}
+
+	SteamIDTools_ConvertIdentityOnline(iClient, provider, szIdentity);
+	return Plugin_Handled;
 }
 
 /**
@@ -154,7 +288,7 @@ bool QueueRequestForClient(int iClient, SteamIDToolsProvider provider, const cha
 
 	if (iRequestId <= 0)
 	{
-		ReplyToCommand(iClient, "[STEAMIDTOOLS] %s: Failed to queue request", szTag);
+		ReplyToTarget(iClient, "[STEAMIDTOOLS] %s: Failed to queue request", szTag);
 		return false;
 	}
 
@@ -334,6 +468,118 @@ void Batch_Online(SteamIDToolsProvider provider, int iClient)
 	QueueRequestForClient(iClient, provider, API_SID64toAID, szBatch, true, "Batch");
 }
 
+void SteamIDTools_ConvertIdentityOnline(int iClient, SteamIDToolsProvider provider, const char[] szIdentity)
+{
+	if (!SteamIDTools_IsProviderAvailable(provider))
+	{
+		char szProviderName[16];
+		GetProviderName(provider, szProviderName, sizeof(szProviderName));
+		ReplyToCommand(iClient, "[STEAMIDTOOLS] %s extension not found", szProviderName);
+		return;
+	}
+
+	char szProviderName[16];
+	GetProviderName(provider, szProviderName, sizeof(szProviderName));
+	ReplyToCommand(iClient, "[STEAMIDTOOLS] Convert online (%s) input=%s", szProviderName, szIdentity);
+
+	switch (DetectSteamIDFormat(szIdentity))
+	{
+		case STEAMID_FORMAT_ACCOUNTID:
+		{
+			QueueRequestForClient(iClient, provider, API_AIDtoSID64, szIdentity, false, "AccountID -> SteamID64");
+		}
+		case STEAMID_FORMAT_STEAMID2:
+		{
+			int iAccountId = SteamID2ToAccountID(szIdentity);
+			char szAccountId[32];
+			char szSteamId3[MAX_AUTHID_LENGTH];
+
+			IntToString(iAccountId, szAccountId, sizeof(szAccountId));
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID2 -> AccountID: %s", szAccountId);
+			if (SteamID2ToSteamID3(szIdentity, szSteamId3, sizeof(szSteamId3)))
+				ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID2 -> SteamID3: %s", szSteamId3);
+
+			QueueRequestForClient(iClient, provider, API_SID2toSID64, szIdentity, false, "SteamID2 -> SteamID64");
+		}
+		case STEAMID_FORMAT_STEAMID3:
+		{
+			int iAccountId = SteamID3ToAccountID(szIdentity);
+			char szAccountId[32];
+			char szSteamId2[MAX_AUTHID_LENGTH];
+
+			IntToString(iAccountId, szAccountId, sizeof(szAccountId));
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID3 -> AccountID: %s", szAccountId);
+			if (SteamID3ToSteamID2(szIdentity, szSteamId2, sizeof(szSteamId2)))
+				ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID3 -> SteamID2: %s", szSteamId2);
+
+			QueueRequestForClient(iClient, provider, API_SID3toSID64, szIdentity, false, "SteamID3 -> SteamID64");
+		}
+		case STEAMID_FORMAT_STEAMID64:
+		{
+			QueueRequestForClient(iClient, provider, API_SID64toAID, szIdentity, false, "SteamID64 -> AccountID");
+			QueueRequestForClient(iClient, provider, API_SID64toSID2, szIdentity, false, "SteamID64 -> SteamID2");
+			QueueRequestForClient(iClient, provider, API_SID64toSID3, szIdentity, false, "SteamID64 -> SteamID3");
+		}
+		default:
+		{
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] Unsupported identity format: %s", szIdentity);
+		}
+	}
+}
+
+void SteamIDTools_ConvertIdentityOffline(int iClient, const char[] szIdentity)
+{
+	ReplyToCommand(iClient, "[STEAMIDTOOLS] Convert offline input=%s", szIdentity);
+
+	switch (DetectSteamIDFormat(szIdentity))
+	{
+		case STEAMID_FORMAT_ACCOUNTID:
+		{
+			int iAccountId = StringToInt(szIdentity);
+			char szSteamId2[MAX_AUTHID_LENGTH];
+			char szSteamId3[MAX_AUTHID_LENGTH];
+
+			if (AccountIDToSteamID2(iAccountId, szSteamId2, sizeof(szSteamId2)))
+				ReplyToCommand(iClient, "[STEAMIDTOOLS] AccountID -> SteamID2: %s", szSteamId2);
+			if (AccountIDToSteamID3(iAccountId, szSteamId3, sizeof(szSteamId3)))
+				ReplyToCommand(iClient, "[STEAMIDTOOLS] AccountID -> SteamID3: %s", szSteamId3);
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] AccountID -> SteamID64: requires online provider");
+		}
+		case STEAMID_FORMAT_STEAMID2:
+		{
+			int iAccountId = SteamID2ToAccountID(szIdentity);
+			char szAccountId[32];
+			char szSteamId3[MAX_AUTHID_LENGTH];
+
+			IntToString(iAccountId, szAccountId, sizeof(szAccountId));
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID2 -> AccountID: %s", szAccountId);
+			if (SteamID2ToSteamID3(szIdentity, szSteamId3, sizeof(szSteamId3)))
+				ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID2 -> SteamID3: %s", szSteamId3);
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID2 -> SteamID64: requires online provider");
+		}
+		case STEAMID_FORMAT_STEAMID3:
+		{
+			int iAccountId = SteamID3ToAccountID(szIdentity);
+			char szAccountId[32];
+			char szSteamId2[MAX_AUTHID_LENGTH];
+
+			IntToString(iAccountId, szAccountId, sizeof(szAccountId));
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID3 -> AccountID: %s", szAccountId);
+			if (SteamID3ToSteamID2(szIdentity, szSteamId2, sizeof(szSteamId2)))
+				ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID3 -> SteamID2: %s", szSteamId2);
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID3 -> SteamID64: requires online provider");
+		}
+		case STEAMID_FORMAT_STEAMID64:
+		{
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] SteamID64 conversions require online provider");
+		}
+		default:
+		{
+			ReplyToCommand(iClient, "[STEAMIDTOOLS] Unsupported identity format: %s", szIdentity);
+		}
+	}
+}
+
 /**
  * Receives completions from the API plugin and prints them to the originating client.
  */
@@ -359,16 +605,29 @@ public void SteamIDTools_OnRequestFinished(int iRequestId, SteamIDToolsProvider 
 	{
 		if (bBatch)
 		{
-			PrintToConsole(iClient, "[STEAMIDTOOLS] %s KeyValue Response:\n%s", szDisplayTag, szResult);
+			if (IsValidClient(iClient))
+				PrintToConsole(iClient, "[STEAMIDTOOLS] %s KeyValue Response:\n%s", szDisplayTag, szResult);
+			else
+				PrintToServer("[STEAMIDTOOLS] %s KeyValue Response:\n%s", szDisplayTag, szResult);
 		}
 		else
 		{
-			ReplyToCommand(iClient, "[STEAMIDTOOLS] %s: %s", szDisplayTag, szResult);
+			ReplyToTarget(iClient, "[STEAMIDTOOLS] %s: %s", szDisplayTag, szResult);
 		}
 		return;
 	}
 
-	ReplyToCommand(iClient, "[STEAMIDTOOLS] %s: %s", szDisplayTag, szResult);
+	ReplyToTarget(iClient, "[STEAMIDTOOLS] %s: %s", szDisplayTag, szResult);
+}
+
+public void SteamIDTools_OnBackendStatusChanged(SteamIDToolsProvider provider, SteamIDToolsBackendStatus status, const char[] szMessage)
+{
+	char szProviderName[16];
+	char szStatusName[16];
+
+	GetProviderName(provider, szProviderName, sizeof(szProviderName));
+	GetBackendStatusName(status, szStatusName, sizeof(szStatusName));
+	PrintToServer("[STEAMIDTOOLS] Backend status changed. provider=%s status=%s message=%s", szProviderName, szStatusName, szMessage);
 }
 
 /**

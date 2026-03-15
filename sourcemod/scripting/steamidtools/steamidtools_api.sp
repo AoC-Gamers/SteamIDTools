@@ -72,6 +72,17 @@ void BuildSteamIDToolsUrl(const char[] szEndpoint, const char[] szParam, bool bN
 }
 
 /**
+ * Builds the backend health-check URL used by the transport providers.
+ */
+void BuildSteamIDToolsHealthUrl(char[] szUrl, int iMaxLen)
+{
+	char szBaseUrl[MAX_API_BASE_URL_LENGTH];
+
+	GetApiBaseUrlInternal(szBaseUrl, sizeof(szBaseUrl));
+	Format(szUrl, iMaxLen, "%s%s", szBaseUrl, API_Health);
+}
+
+/**
  * Checks whether the requested HTTP provider extension is currently available.
  */
 bool IsProviderLoaded(SteamIDToolsProvider provider)
@@ -89,6 +100,63 @@ bool IsProviderLoaded(SteamIDToolsProvider provider)
 	}
 
 	return false;
+}
+
+/**
+ * Returns true when the enum maps to a supported provider slot.
+ */
+bool IsValidProvider(SteamIDToolsProvider provider)
+{
+	return (provider == SteamIDToolsProvider_SteamWorks || provider == SteamIDToolsProvider_System2);
+}
+
+/**
+ * Returns the last cached backend status for a provider.
+ */
+SteamIDToolsBackendStatus GetBackendStatusInternal(SteamIDToolsProvider provider)
+{
+	if (!IsValidProvider(provider))
+	{
+		return SteamIDToolsBackendStatus_Unknown;
+	}
+
+	int iProvider = view_as<int>(provider);
+	if (!g_bBackendStatusKnown[iProvider])
+	{
+		return SteamIDToolsBackendStatus_Unknown;
+	}
+
+	return g_bBackendOnline[iProvider] ? SteamIDToolsBackendStatus_Online : SteamIDToolsBackendStatus_Offline;
+}
+
+/**
+ * Converts one cached backend status enum to a readable string.
+ */
+void GetBackendStatusDisplay(SteamIDToolsProvider provider, char[] szBuffer, int iMaxLen)
+{
+	switch (GetBackendStatusInternal(provider))
+	{
+		case SteamIDToolsBackendStatus_Online:
+		{
+			strcopy(szBuffer, iMaxLen, "online");
+		}
+		case SteamIDToolsBackendStatus_Offline:
+		{
+			strcopy(szBuffer, iMaxLen, "offline");
+		}
+		default:
+		{
+			strcopy(szBuffer, iMaxLen, "unknown");
+		}
+	}
+}
+
+/**
+ * Returns true when the provider transport exists and the backend is healthy.
+ */
+bool IsProviderReadyInternal(SteamIDToolsProvider provider)
+{
+	return (IsProviderLoaded(provider) && GetBackendStatusInternal(provider) == SteamIDToolsBackendStatus_Online);
 }
 
 /**
@@ -111,6 +179,105 @@ void GetProviderName(SteamIDToolsProvider provider, char[] szBuffer, int iMaxLen
 			strcopy(szBuffer, iMaxLen, "unknown");
 		}
 	}
+}
+
+/**
+ * Fires the public forward used to notify backend status changes.
+ */
+void FireBackendStatusChangedForward(SteamIDToolsProvider provider, SteamIDToolsBackendStatus status, const char[] szMessage)
+{
+	if (g_hBackendStatusChangedForward == INVALID_HANDLE)
+	{
+		return;
+	}
+
+	Call_StartForward(g_hBackendStatusChangedForward);
+	Call_PushCell(view_as<int>(provider));
+	Call_PushCell(view_as<int>(status));
+	Call_PushString(szMessage);
+	Call_Finish();
+}
+
+/**
+ * Updates the cached backend status and notifies listeners when it changes.
+ */
+void SetBackendStatus(SteamIDToolsProvider provider, SteamIDToolsBackendStatus status, const char[] szMessage)
+{
+	if (!IsValidProvider(provider))
+	{
+		return;
+	}
+
+	int iProvider = view_as<int>(provider);
+	SteamIDToolsBackendStatus oldStatus = GetBackendStatusInternal(provider);
+	char szOldMessage[STEAMIDTOOLS_BACKEND_STATUS_TEXT_LENGTH];
+	strcopy(szOldMessage, sizeof(szOldMessage), g_szBackendStatusMessage[iProvider]);
+
+	g_bBackendStatusKnown[iProvider] = (status != SteamIDToolsBackendStatus_Unknown);
+	g_bBackendOnline[iProvider] = (status == SteamIDToolsBackendStatus_Online);
+	strcopy(g_szBackendStatusMessage[iProvider], sizeof(g_szBackendStatusMessage[]), szMessage);
+	char szProviderName[16];
+	GetProviderName(provider, szProviderName, sizeof(szProviderName));
+	SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_HEALTH, "Backend status updated. provider=%s status=%d message=%s", szProviderName, view_as<int>(status), szMessage);
+
+	if (oldStatus != status || !StrEqual(szOldMessage, szMessage))
+	{
+		FireBackendStatusChangedForward(provider, status, szMessage);
+	}
+}
+
+/**
+ * Restarts the periodic health timer after configuration changes.
+ */
+void RestartHealthCheckTimer()
+{
+	if (g_hHealthCheckTimer != INVALID_HANDLE)
+	{
+		delete g_hHealthCheckTimer;
+		g_hHealthCheckTimer = INVALID_HANDLE;
+	}
+
+	float flInterval = g_hHealthCheckInterval.FloatValue;
+	if (flInterval <= 0.0)
+	{
+		SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_HEALTH, "Health timer disabled.");
+		return;
+	}
+
+	g_hHealthCheckTimer = CreateTimer(flInterval, Timer_BackendHealthCheck, _, TIMER_REPEAT);
+	SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_HEALTH, "Health timer started. interval=%.2f", flInterval);
+}
+
+/**
+ * Creates the small context used by the internal health-check callbacks.
+ */
+Handle CreateHealthCheckContext(SteamIDToolsProvider provider)
+{
+	Handle hPack = CreateDataPack();
+	WritePackCell(hPack, view_as<int>(provider));
+	return hPack;
+}
+
+/**
+ * Completes one internal health check and stores the resulting status.
+ */
+void CompleteHealthCheck(Handle hPack, bool bSuccess, const char[] szMessage)
+{
+	ResetPack(hPack);
+	SteamIDToolsProvider provider = view_as<SteamIDToolsProvider>(ReadPackCell(hPack));
+	delete hPack;
+
+	if (!IsValidProvider(provider))
+	{
+		return;
+	}
+
+	int iProvider = view_as<int>(provider);
+	g_bHealthCheckInFlight[iProvider] = false;
+	char szProviderName[16];
+	GetProviderName(provider, szProviderName, sizeof(szProviderName));
+	SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_HEALTH, "Health check completed. provider=%s success=%d message=%s", szProviderName, bSuccess ? 1 : 0, szMessage);
+	SetBackendStatus(provider, bSuccess ? SteamIDToolsBackendStatus_Online : SteamIDToolsBackendStatus_Offline, szMessage);
 }
 
 /**
@@ -176,6 +343,10 @@ void FireRequestFinishedForward(int iRequestId, SteamIDToolsProvider provider, b
 	Call_PushString(szResult);
 	Call_PushString(szTag);
 	Call_Finish();
+
+	char szProviderName[16];
+	GetProviderName(provider, szProviderName, sizeof(szProviderName));
+	SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_REQUEST, "Request finished. id=%d provider=%s success=%d batch=%d endpoint=%s input=%s tag=%s result=%s", iRequestId, szProviderName, bSuccess ? 1 : 0, bBatch ? 1 : 0, szEndpoint, szInput, szTag, szResult);
 }
 
 /**
@@ -192,6 +363,11 @@ void CompleteRequest(Handle hPack, bool bSuccess, const char[] szResult)
 
 	ReadRequestContext(hPack, iRequestId, provider, bBatch, szEndpoint, sizeof(szEndpoint), szInput, sizeof(szInput), szTag, sizeof(szTag));
 	delete hPack;
+
+	if (IsValidProvider(provider))
+	{
+		SetBackendStatus(provider, bSuccess ? SteamIDToolsBackendStatus_Online : SteamIDToolsBackendStatus_Offline, bSuccess ? "Request OK" : szResult);
+	}
 
 	FireRequestFinishedForward(iRequestId, provider, bSuccess, bBatch, szEndpoint, szInput, szResult, szTag);
 }
@@ -225,6 +401,63 @@ bool SendProviderRequest(SteamIDToolsProvider provider, const char[] szEndpoint,
 }
 
 /**
+ * Starts an async backend health probe for the selected provider.
+ */
+bool RequestBackendHealthCheck(SteamIDToolsProvider provider)
+{
+	if (!IsValidProvider(provider) || !IsProviderLoaded(provider))
+	{
+		SetBackendStatus(provider, SteamIDToolsBackendStatus_Unknown, "Provider unavailable");
+		return false;
+	}
+
+	int iProvider = view_as<int>(provider);
+	if (g_bHealthCheckInFlight[iProvider])
+	{
+		SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_HEALTH, "Health check skipped because one is already in flight. provider=%d", iProvider);
+		return false;
+	}
+
+	Handle hPack = CreateHealthCheckContext(provider);
+	g_bHealthCheckInFlight[iProvider] = true;
+	char szProviderName[16];
+	GetProviderName(provider, szProviderName, sizeof(szProviderName));
+	SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_HEALTH, "Queueing health check. provider=%s", szProviderName);
+
+	switch (provider)
+	{
+		case SteamIDToolsProvider_SteamWorks:
+		{
+			if (SendSteamWorksHealthCheck(hPack))
+			{
+				return true;
+			}
+		}
+		case SteamIDToolsProvider_System2:
+		{
+			if (SendSystem2HealthCheck(hPack))
+			{
+				return true;
+			}
+		}
+	}
+
+	g_bHealthCheckInFlight[iProvider] = false;
+	delete hPack;
+	SetBackendStatus(provider, SteamIDToolsBackendStatus_Offline, "Failed to start health check");
+	return false;
+}
+
+/**
+ * Queues health checks for all currently loaded providers.
+ */
+void RequestAllBackendHealthChecks()
+{
+	RequestBackendHealthCheck(SteamIDToolsProvider_SteamWorks);
+	RequestBackendHealthCheck(SteamIDToolsProvider_System2);
+}
+
+/**
  * Validates and enqueues a new online request exposed through the public natives.
  */
 int StartOnlineRequest(SteamIDToolsProvider provider, const char[] szEndpoint, const char[] szInput, bool bBatch, const char[] szTag)
@@ -233,25 +466,65 @@ int StartOnlineRequest(SteamIDToolsProvider provider, const char[] szEndpoint, c
 	{
 		char szProviderName[16];
 		GetProviderName(provider, szProviderName, sizeof(szProviderName));
+		SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_REQUEST, "Request rejected because provider is unavailable. provider=%s endpoint=%s input=%s", szProviderName, szEndpoint, szInput);
 		LogError("[STEAMIDTOOLS] Provider unavailable: %s", szProviderName);
 		return 0;
 	}
 
 	if (!IsValidRequestInput(szEndpoint, szInput))
 	{
+		SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_REQUEST, "Request rejected because input is invalid. endpoint=%s input=%s", szEndpoint, szInput);
 		LogError("[STEAMIDTOOLS] Invalid online request input");
 		return 0;
 	}
 
 	int iRequestId = AllocateRequestId();
 	Handle hPack = CreateRequestContext(iRequestId, provider, bBatch, szEndpoint, szInput, szTag);
+	char szProviderName[16];
+	GetProviderName(provider, szProviderName, sizeof(szProviderName));
+	SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_REQUEST, "Queueing request. id=%d provider=%s batch=%d endpoint=%s input=%s tag=%s", iRequestId, szProviderName, bBatch ? 1 : 0, szEndpoint, szInput, szTag);
 	if (!SendProviderRequest(provider, szEndpoint, szInput, bBatch, hPack))
 	{
+		SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_REQUEST, "Failed to dispatch request. id=%d provider=%s endpoint=%s", iRequestId, szProviderName, szEndpoint);
 		delete hPack;
 		return 0;
 	}
 
 	return iRequestId;
+}
+
+/**
+ * Reacts to cvar changes by refreshing timer state and re-probing the backend.
+ */
+public void OnSteamIDToolsSettingsChanged(ConVar hConVar, const char[] szOldValue, const char[] szNewValue)
+{
+	char szConVarName[64];
+	hConVar.GetName(szConVarName, sizeof(szConVarName));
+	SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_GENERAL, "Setting changed. name=%s old=%s new=%s", szConVarName, szOldValue, szNewValue);
+
+	if (hConVar == g_hDebugMask)
+	{
+		return;
+	}
+
+	if (hConVar == g_hHealthCheckInterval)
+	{
+		RestartHealthCheckTimer();
+	}
+
+	SetBackendStatus(SteamIDToolsProvider_SteamWorks, SteamIDToolsBackendStatus_Unknown, "Health check pending");
+	SetBackendStatus(SteamIDToolsProvider_System2, SteamIDToolsBackendStatus_Unknown, "Health check pending");
+	RequestAllBackendHealthChecks();
+}
+
+/**
+ * Periodically refreshes the cached backend status.
+ */
+public Action Timer_BackendHealthCheck(Handle hTimer)
+{
+	SteamIDToolsDebug(STEAMIDTOOLS_DEBUG_HEALTH, "Periodic health check tick.");
+	RequestAllBackendHealthChecks();
+	return Plugin_Continue;
 }
 
 /**
@@ -261,6 +534,51 @@ public int Native_IsProviderAvailable(Handle hPlugin, int iNumParams)
 {
 	SteamIDToolsProvider provider = view_as<SteamIDToolsProvider>(GetNativeCell(1));
 	return IsProviderLoaded(provider);
+}
+
+/**
+ * Native wrapper that returns the current cached backend status enum.
+ */
+public int Native_GetBackendStatus(Handle hPlugin, int iNumParams)
+{
+	SteamIDToolsProvider provider = view_as<SteamIDToolsProvider>(GetNativeCell(1));
+	return view_as<int>(GetBackendStatusInternal(provider));
+}
+
+/**
+ * Native wrapper that returns true when both provider and backend are ready.
+ */
+public int Native_IsProviderReady(Handle hPlugin, int iNumParams)
+{
+	SteamIDToolsProvider provider = view_as<SteamIDToolsProvider>(GetNativeCell(1));
+	return IsProviderReadyInternal(provider);
+}
+
+/**
+ * Native wrapper that queues a backend health probe.
+ */
+public int Native_RequestHealthCheck(Handle hPlugin, int iNumParams)
+{
+	SteamIDToolsProvider provider = view_as<SteamIDToolsProvider>(GetNativeCell(1));
+	return RequestBackendHealthCheck(provider);
+}
+
+/**
+ * Native wrapper that returns the last cached backend status text.
+ */
+public int Native_GetBackendStatusMessage(Handle hPlugin, int iNumParams)
+{
+	SteamIDToolsProvider provider = view_as<SteamIDToolsProvider>(GetNativeCell(1));
+	int iMaxLen = GetNativeCell(3);
+
+	if (!IsValidProvider(provider))
+	{
+		SetNativeString(2, "", iMaxLen, true);
+		return 0;
+	}
+
+	SetNativeString(2, g_szBackendStatusMessage[view_as<int>(provider)], iMaxLen, true);
+	return 1;
 }
 
 /**
