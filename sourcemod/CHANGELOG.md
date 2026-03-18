@@ -16,6 +16,20 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 - None.
 
+## [2.3.2]
+
+### Added
+
+- Documentacion nueva en `docs/steamid-reference.md` con la relacion entre `SteamID2`, `SteamID3`, `SteamID64` y `AccountID` basada en la documentacion de Valve.
+
+### Changed
+
+- La validacion de `SteamID64` en el include ahora sigue el rango decimal derivado de la estructura documentada por Valve para cuentas individuales publicas, en vez de depender de prefijos fijos.
+
+### Fixed
+
+- Se corrige el rechazo de `SteamID64` validos que antes quedaban fuera por una heuristica de prefijos demasiado restrictiva.
+
 ## [2.3.1]
 
 ### Added

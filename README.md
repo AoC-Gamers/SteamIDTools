@@ -48,6 +48,7 @@ http://localhost:80/swagger/index.html
 ## Documentacion
 
 - [Indice de documentacion](./docs/README.md)
+- [Referencia de SteamID](./docs/steamid-reference.md)
 - [Inicio Rapido](./docs/getting-started.md)
 - [API HTTP](./docs/api.md)
 - [Despliegue y Operacion](./docs/deployment.md)
