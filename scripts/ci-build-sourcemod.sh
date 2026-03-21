@@ -54,4 +54,9 @@ rm -f "$PACKAGE_SM_DIR/scripting/include/SteamWorks.inc"
 rm -f "$PACKAGE_SM_DIR/scripting/include/system2.inc"
 rm -rf "$PACKAGE_SM_DIR/scripting/include/system2"
 
+if [[ ! -f "$PACKAGE_SM_DIR/scripting/include/steamidtools_stock.inc" ]]; then
+  echo "steamidtools_stock.inc was not included in the SourceMod artifact." >&2
+  exit 1
+fi
+
 echo "SourceMod artifacts generated in $ARTIFACT_DIR"

@@ -16,6 +16,19 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 - None.
 
+## [2.4.0] - 2026-03-21
+
+### Added
+
+- Nuevo include `sourcemod/scripting/include/steamidtools_stock.inc` con conversiones y validaciones offline separadas de la API online.
+
+### Changed
+
+- `sourcemod/scripting/include/steamidtools.inc` ahora queda dedicado a la library del plugin, natives y forwards, e incluye `steamidtools_stock.inc`.
+- `sourcemod/scripting/include/steamidtools_helpers.inc` ahora depende de `steamidtools_stock.inc`.
+- El artifact CI de SourceMod ahora verifica que `steamidtools_stock.inc` quede incluido en el paquete generado.
+- `steamidtools.inc`, `steamidtools_stock.inc`, `steamidtools_helpers.inc`, `steamidtools.sp` y `steamidtools_test.sp` ahora usan una sola macro de version publica: `STEAMIDTOOLS_VERSION`.
+
 ## [2.3.2]
 
 ### Added
