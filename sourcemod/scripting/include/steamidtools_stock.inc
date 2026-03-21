@@ -18,6 +18,7 @@
 #define STEAMID2_MIN_LENGTH	   11
 #define STEAMID3_MIN_LENGTH	   8
 #define STEAMID64_BASE		   76561197960265728
+#define STEAMID64_BASE_STRING  "76561197960265728"
 #define STEAMID64_MIN_INDIVIDUAL_STRING "76561197960265729"
 #define STEAMID64_MAX_INDIVIDUAL_STRING "76561202255233023"
 
@@ -115,6 +116,72 @@ stock bool AccountIDToSteamID2(int iAccountId, char[] szBuffer, int iMaxlen)
 
 	Format(szBuffer, iMaxlen, "STEAM_%d:%d:%d", STEAMIDTOOLS_SID2_UNIVERSE, iY, iZ);
 	return true;
+}
+
+/**
+ * Adds a positive integer to a decimal string value.
+ *
+ * @param szBaseValue   Base decimal value string
+ * @param iAddValue     Positive integer to add
+ * @param szResult      Output buffer
+ * @param iMaxLength    Output buffer length
+ * @return              true on success, false on failure
+ */
+stock bool SteamIDTools_AddDecimalStringInt(const char[] szBaseValue, int iAddValue, char[] szResult, int iMaxLength)
+{
+	if (iAddValue < 0 || iMaxLength <= 1)
+		return false;
+
+	char szAddValue[16];
+	char szReversed[32];
+	IntToString(iAddValue, szAddValue, sizeof(szAddValue));
+
+	int iBasePos = strlen(szBaseValue) - 1;
+	int iAddPos = strlen(szAddValue) - 1;
+	int iCarry = 0;
+	int iReversedLength = 0;
+
+	while (iBasePos >= 0 || iAddPos >= 0 || iCarry != 0)
+	{
+		if (iReversedLength >= sizeof(szReversed) - 1)
+			return false;
+
+		int iDigit = iCarry;
+		if (iBasePos >= 0)
+			iDigit += szBaseValue[iBasePos--] - '0';
+		if (iAddPos >= 0)
+			iDigit += szAddValue[iAddPos--] - '0';
+
+		szReversed[iReversedLength++] = view_as<char>('0' + (iDigit % 10));
+		iCarry = iDigit / 10;
+	}
+
+	if (iReversedLength + 1 > iMaxLength)
+		return false;
+
+	for (int i = 0; i < iReversedLength; i++)
+	{
+		szResult[i] = szReversed[iReversedLength - i - 1];
+	}
+
+	szResult[iReversedLength] = '\0';
+	return true;
+}
+
+/**
+ * Converts AccountID to SteamID64.
+ *
+ * @param iAccountId    AccountID to convert
+ * @param szBuffer      Buffer to store the result
+ * @param iMaxlen       Maximum buffer length
+ * @return              true on success, false on failure
+ */
+stock bool SteamIDTools_AccountIDToSteamID64(int iAccountId, char[] szBuffer, int iMaxlen)
+{
+	if (iAccountId <= 0)
+		return false;
+
+	return SteamIDTools_AddDecimalStringInt(STEAMID64_BASE_STRING, iAccountId, szBuffer, iMaxlen);
 }
 
 /**
