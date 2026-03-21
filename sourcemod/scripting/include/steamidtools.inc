@@ -65,9 +65,6 @@ enum SteamIDToolsBackendStatus
 }
 
 /**
- * Enum for different SteamID formats
- */
-/**
  * Returns true when the SteamIDTools API plugin library is loaded.
  */
 stock bool SteamIDTools_IsLibraryAvailable()
