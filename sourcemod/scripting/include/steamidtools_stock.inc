@@ -21,6 +21,8 @@
 #define STEAMID64_BASE_STRING  "76561197960265728"
 #define STEAMID64_MIN_INDIVIDUAL_STRING "76561197960265729"
 #define STEAMID64_MAX_INDIVIDUAL_STRING "76561202255233023"
+#define URL_VANITY "https://steamcommunity.com/id/"
+#define URL_SID    "https://steamcommunity.com/profiles/"
 
 #if !defined STEAMIDTOOLS_SID2_UNIVERSE
 	#define STEAMIDTOOLS_SID2_UNIVERSE 1
@@ -287,6 +289,45 @@ stock bool AccountIDToSteamID3(int iAccountId, char[] szBuffer, int iMaxlen)
 	}
 
 	Format(szBuffer, iMaxlen, "[U:1:%d]", iAccountId);
+	return true;
+}
+
+/**
+ * Builds a Steam community profile URL using a SteamID3 path.
+ *
+ * @param iAccountId    AccountID to convert
+ * @param szBuffer      Buffer to store the result
+ * @param iMaxlen       Maximum buffer length
+ * @return              true on success, false on failure
+ */
+stock bool AccountIDToProfileURL_SID3(int iAccountId, char[] szBuffer, int iMaxlen)
+{
+	char szSteamId3[32];
+	if (!AccountIDToSteamID3(iAccountId, szSteamId3, sizeof(szSteamId3)))
+	{
+		return false;
+	}
+
+	Format(szBuffer, iMaxlen, "%s%s", URL_SID, szSteamId3);
+	return true;
+}
+
+/**
+ * Builds a Steam community profile URL using a SteamID64 path.
+ *
+ * @param szSteamId64   SteamID64 string
+ * @param szBuffer      Buffer to store the result
+ * @param iMaxlen       Maximum buffer length
+ * @return              true on success, false on failure
+ */
+stock bool SteamID64ToProfileURL(const char[] szSteamId64, char[] szBuffer, int iMaxlen)
+{
+	if (!IsValidSteamID64(szSteamId64))
+	{
+		return false;
+	}
+
+	Format(szBuffer, iMaxlen, "%s%s", URL_SID, szSteamId64);
 	return true;
 }
 
