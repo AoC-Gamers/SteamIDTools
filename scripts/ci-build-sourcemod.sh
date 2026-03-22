@@ -17,44 +17,33 @@ tar -xzf "$WORK_DIR/sourcemod.tar.gz" -C "$WORK_DIR"
 
 SOURCEMOD_DIR="$WORK_DIR"
 SPCOMP_BIN="$SOURCEMOD_DIR/addons/sourcemod/scripting/spcomp"
-PACKAGE_SM_DIR="$ARTIFACT_DIR/sourcemod"
-COMPILE_LOG="$ARTIFACT_DIR/compile.log"
+PACKAGE_ROOT_DIR="$ARTIFACT_DIR/addons/sourcemod"
+COMPILE_LOG="$WORK_DIR/compile.log"
 
-mkdir -p "$PACKAGE_SM_DIR/plugins"
+mkdir -p "$PACKAGE_ROOT_DIR/plugins/custom"
 : > "$COMPILE_LOG"
 
 echo "Compiling steamidtools.sp..."
 "$SPCOMP_BIN" \
   "$ROOT_DIR/sourcemod/scripting/steamidtools.sp" \
   -i"$ROOT_DIR/sourcemod/scripting/include" \
-  -o"$PACKAGE_SM_DIR/plugins/steamidtools.smx" \
+  -o"$PACKAGE_ROOT_DIR/plugins/custom/steamidtools.smx" \
   2>&1 | tee -a "$COMPILE_LOG"
 
-echo "Compiling steamidtools_test.sp..."
-"$SPCOMP_BIN" \
-  "$ROOT_DIR/sourcemod/scripting/steamidtools_test.sp" \
-  -i"$ROOT_DIR/sourcemod/scripting/include" \
-  -o"$PACKAGE_SM_DIR/plugins/steamidtools_test.smx" \
-  2>&1 | tee -a "$COMPILE_LOG"
-
-if [[ ! -f "$PACKAGE_SM_DIR/plugins/steamidtools.smx" ]]; then
+if [[ ! -f "$PACKAGE_ROOT_DIR/plugins/custom/steamidtools.smx" ]]; then
   echo "Compiled plugin was not generated." >&2
   exit 1
 fi
 
-if [[ ! -f "$PACKAGE_SM_DIR/plugins/steamidtools_test.smx" ]]; then
-  echo "Compiled test plugin was not generated." >&2
-  exit 1
-fi
+mkdir -p "$PACKAGE_ROOT_DIR/scripting/include/system2"
 
-mkdir -p "$PACKAGE_SM_DIR/scripting/include/system2"
+cp -R "$ROOT_DIR/sourcemod/scripting" "$PACKAGE_ROOT_DIR/"
+rm -f "$PACKAGE_ROOT_DIR/scripting/include/SteamWorks.inc"
+rm -f "$PACKAGE_ROOT_DIR/scripting/include/system2.inc"
+rm -rf "$PACKAGE_ROOT_DIR/scripting/include/system2"
+rm -f "$PACKAGE_ROOT_DIR/scripting/steamidtools_test.sp"
 
-cp -R "$ROOT_DIR/sourcemod/scripting" "$PACKAGE_SM_DIR/"
-rm -f "$PACKAGE_SM_DIR/scripting/include/SteamWorks.inc"
-rm -f "$PACKAGE_SM_DIR/scripting/include/system2.inc"
-rm -rf "$PACKAGE_SM_DIR/scripting/include/system2"
-
-if [[ ! -f "$PACKAGE_SM_DIR/scripting/include/steamidtools_stock.inc" ]]; then
+if [[ ! -f "$PACKAGE_ROOT_DIR/scripting/include/steamidtools_stock.inc" ]]; then
   echo "steamidtools_stock.inc was not included in the SourceMod artifact." >&2
   exit 1
 fi

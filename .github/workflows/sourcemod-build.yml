@@ -47,5 +47,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           path: |
-            dist/sourcemod/artifact/compile.log
-            dist/sourcemod/artifact/sourcemod/**
+            dist/sourcemod/artifact/addons/**
