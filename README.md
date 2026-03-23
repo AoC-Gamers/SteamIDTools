@@ -6,7 +6,8 @@ Servicio HTTP y toolkit para conversion de SteamID, con backend Go y soporte de 
 
 - Backend Go para conversiones `SteamID64`, `AccountID`, `SteamID2` y `SteamID3`
 - OpenAPI/Swagger para exploracion de la API
-- Include SourceMod para conversiones offline
+- Include SourceMod `steamidtools_stock.inc` para conversiones offline
+- Include SourceMod `steamidtools.inc` para contrato API online
 - Plugin API SourceMod para conversiones online via backend con `SteamWorks` o `system2`
 - Plugin demo SourceMod para probar la API y las conversiones offline
 
@@ -48,6 +49,7 @@ http://localhost:80/swagger/index.html
 ## Documentacion
 
 - [Indice de documentacion](./docs/README.md)
+- [Referencia de SteamID](./docs/steamid-reference.md)
 - [Inicio Rapido](./docs/getting-started.md)
 - [API HTTP](./docs/api.md)
 - [Despliegue y Operacion](./docs/deployment.md)

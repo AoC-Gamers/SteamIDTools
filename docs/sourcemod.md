@@ -2,12 +2,14 @@
 
 El proyecto incluye dos cosas para SourceMod:
 
-- Un include reutilizable con conversiones offline.
+- Un include reutilizable de stocks offline.
+- Un include de API online que expone la library del plugin.
 - Un plugin API (`steamidtools.sp`) para conversiones online contra el backend.
 - Un plugin demo (`steamidtools_test.sp`) que consume esa API.
 
 ## Archivos principales
 
+- `sourcemod/scripting/include/steamidtools_stock.inc`
 - `sourcemod/scripting/include/steamidtools.inc`
 - `sourcemod/scripting/steamidtools.sp`
 - `sourcemod/scripting/steamidtools_test.sp`
@@ -16,7 +18,7 @@ El proyecto incluye dos cosas para SourceMod:
 
 ## Conversiones offline
 
-El include permite conversiones sin backend HTTP.
+`steamidtools_stock.inc` permite conversiones sin backend HTTP.
 
 Casos soportados:
 
@@ -33,10 +35,16 @@ Si necesitas otro valor en compile-time:
 
 ```sourcepawn
 #define STEAMIDTOOLS_SID2_UNIVERSE 0
-#include <steamidtools>
+#include <steamidtools_stock>
 ```
 
 ## Plugin API HTTP
+
+`steamidtools.inc` ya no mezcla stocks offline con la library del plugin. Ahora:
+
+- incluye `steamidtools_stock.inc`
+- declara la library `steamidtools`
+- expone `natives` y `forwards` del plugin online
 
 `steamidtools.sp` ya no es el plugin de prueba. Ahora:
 
@@ -81,7 +89,7 @@ Comandos:
 
 ```sourcepawn
 #include <sourcemod>
-#include <steamidtools>
+#include <steamidtools_stock>
 
 public Action CmdOfflineConversion(int client, int args)
 {

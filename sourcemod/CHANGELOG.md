@@ -16,6 +16,33 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 - None.
 
+## [2.4.0] - 2026-03-21
+
+### Added
+
+- Nuevo include `sourcemod/scripting/include/steamidtools_stock.inc` con conversiones y validaciones offline separadas de la API online.
+
+### Changed
+
+- `sourcemod/scripting/include/steamidtools.inc` ahora queda dedicado a la library del plugin, natives y forwards, e incluye `steamidtools_stock.inc`.
+- `sourcemod/scripting/include/steamidtools_helpers.inc` ahora depende de `steamidtools_stock.inc`.
+- El artifact CI de SourceMod ahora verifica que `steamidtools_stock.inc` quede incluido en el paquete generado.
+- `steamidtools.inc`, `steamidtools_stock.inc`, `steamidtools_helpers.inc`, `steamidtools.sp` y `steamidtools_test.sp` ahora usan una sola macro de version publica: `STEAMIDTOOLS_VERSION`.
+
+## [2.3.2]
+
+### Added
+
+- Documentacion nueva en `docs/steamid-reference.md` con la relacion entre `SteamID2`, `SteamID3`, `SteamID64` y `AccountID` basada en la documentacion de Valve.
+
+### Changed
+
+- La validacion de `SteamID64` en el include ahora sigue el rango decimal derivado de la estructura documentada por Valve para cuentas individuales publicas, en vez de depender de prefijos fijos.
+
+### Fixed
+
+- Se corrige el rechazo de `SteamID64` validos que antes quedaban fuera por una heuristica de prefijos demasiado restrictiva.
+
 ## [2.3.1]
 
 ### Added

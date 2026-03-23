@@ -39,12 +39,12 @@ jobs:
       - name: Compile SourceMod plugin
         run: bash ./scripts/ci-build-sourcemod.sh
 
-      - name: Upload SourceMod artifacts
+      - name: Upload SourceMod CI artifact
+        if: github.event_name != 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: sourcemod-plugin-${{ github.sha }}
+          name: steamidtools-sourcemod-ci-${{ github.ref_name }}
           if-no-files-found: error
           retention-days: 14
           path: |
-            dist/sourcemod/artifact/compile.log
-            dist/sourcemod/artifact/sourcemod/**
+            dist/sourcemod/artifact/addons/**

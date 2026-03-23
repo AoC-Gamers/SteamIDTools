@@ -49,7 +49,7 @@ public Plugin myinfo =
 	name		= "SteamID Tools Test",
 	author		= "lechuga",
 	description = "Test plugin for the SteamIDTools API",
-	version		= "2.3.0",
+	version		= STEAMIDTOOLS_VERSION,
 	url			= "https://github.com/AoC-Gamers/SteamIDTools"
 };
 
