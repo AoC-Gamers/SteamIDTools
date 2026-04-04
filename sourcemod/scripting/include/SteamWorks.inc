@@ -213,690 +213,709 @@ enum EGCResults
 };
 
 /**
- * Verifica si VAC está habilitado en el servidor
+ * Checks whether VAC is enabled on the server.
  *
- * @return true si VAC está habilitado, false si no
+ * @return true if VAC is enabled, false otherwise
  */
 native bool SteamWorks_IsVACEnabled();
 
 /**
- * Obtiene la dirección IP pública del servidor
+ * Gets the server public IP address.
  *
- * @param ipaddr     Arreglo que recibe los 4 bytes de la IP
- * @return           true si se obtuvo correctamente, false en error
+ * @param ipaddr     Array that receives the 4 IP bytes
+ * @return           true if retrieved successfully, false on error
  */
 native bool SteamWorks_GetPublicIP(int ipaddr[4]);
 
 /**
- * Obtiene la dirección IP pública del servidor como número
+ * Gets the server public IP address as a numeric value.
  *
- * @return           IP pública en formato numérico (cell)
+ * @return           Public IP in numeric cell format
  */
 native int SteamWorks_GetPublicIPCell();
 
 /**
- * Verifica si la extensión SteamWorks está cargada
+ * Checks whether the SteamWorks extension is loaded.
  *
- * @return           true si está cargada, false si no
+ * @return           true if loaded, false otherwise
  */
 native bool SteamWorks_IsLoaded();
 
 /**
- * Establece datos personalizados visibles en la partida
+ * Sets custom game data visible to the server browser.
  *
- * @param sData      Cadena con datos (clave/valor)
- * @return           true si se estableció correctamente
+ * @param data       Key/value data string
+ * @return           true if set successfully
  */
-native bool SteamWorks_SetGameData(const char[] sData);
+native bool SteamWorks_SetGameData(const char[] data);
 
 /**
- * Establece la descripción personalizada del juegos
+ * Sets the custom game description.
  *
- * @param sDesc      Cadena con la descripción
- * @return           true si se estableció correctamente
+ * @param description Description string
+ * @return           true if set successfully
  */
-native bool SteamWorks_SetGameDescription(const char[] sDesc);
+native bool SteamWorks_SetGameDescription(const char[] description);
 
 /**
- * Establece el nombre del mapa mostrado en Steam
+ * Sets the map name shown in Steam.
  *
- * @param sMapName   Cadena con el nombre del mapa
- * @return           true si se estableció correctamente
+ * @param mapName    Map name string
+ * @return           true if set successfully
  */
-native bool SteamWorks_SetMapName(const char[] sMapName);
+native bool SteamWorks_SetMapName(const char[] mapName);
 
 /**
- * Verifica si el servidor está conectado a Steam
+ * Checks whether the server is connected to Steam.
  *
- * @return           true si está conectado, false si no
+ * @return           true if connected, false otherwise
  */
 native bool SteamWorks_IsConnected();
 
 /**
- * Establece una regla personalizada visible desde el lobby
+ * Sets a custom rule visible from the lobby or browser.
  *
- * @param sKey       Clave de la regla
- * @param sValue     Valor de la regla
- * @return           true si se estableció correctamente
+ * @param key        Rule key
+ * @param value      Rule value
+ * @return           true if set successfully
  */
-native bool SteamWorks_SetRule(const char[] sKey, const char[] sValue);
+native bool SteamWorks_SetRule(const char[] key, const char[] value);
 
 /**
- * Limpia todas las reglas establecidas previamente
+ * Clears all previously set rules.
  *
- * @return           true si se eliminaron todas
+ * @return           true if all rules were removed
  */
 native bool SteamWorks_ClearRules();
 
 /**
- * Verifica si un cliente pertenece a un grupo de Steam específico
+ * Checks whether a connected client belongs to a specific Steam group.
  *
- * @param client     Índice del cliente conectado (1-64)
- * @param groupid    ID del grupo de Steam a comprobar
- * @return           true si el cliente es miembro del grupo, false si no o si hay error
+ * @param client     Connected client index (1-64)
+ * @param groupid    Steam group ID to check
+ * @return           true if the client is a member, false otherwise or on error
  */
 native bool SteamWorks_GetUserGroupStatus(int client, int groupid);
 
 /**
- * Verifica si una SteamID específica pertenece a un grupo de Steam
+ * Checks whether a specific SteamID belongs to a Steam group.
  *
- * @param authid     SteamID del jugador en formato numérico (AuthID/SteamID64)
- * @param groupid    ID del grupo de Steam a comprobar
- * @return           true si pertenece al grupo, false si no o si hay error
+ * @param authid     Player SteamID in numeric format (AuthID/SteamID64)
+ * @param groupid    Steam group ID to check
+ * @return           true if the user belongs to the group, false otherwise or on error
  */
 native bool SteamWorks_GetUserGroupStatusAuthID(int authid, int groupid);
 
 /**
- * Verifica si un cliente posee licencia para una aplicación (juego) específica
+ * Checks whether a connected client owns a license for a specific application.
  *
- * @param client     Índice del cliente conectado
- * @param app        AppID del juego (por ejemplo, 550 para L4D2)
- * @return           Resultado de tipo EUserHasLicenseForAppResult
+ * @param client     Connected client index
+ * @param app        Game AppID (for example, 550 for L4D2)
+ * @return           EUserHasLicenseForAppResult value
  */
 native EUserHasLicenseForAppResult SteamWorks_HasLicenseForApp(int client, int app);
 
 /**
- * Verifica si una SteamID específica posee licencia para una aplicación
+ * Checks whether a specific SteamID owns a license for an application.
  *
- * @param authid     SteamID del jugador (AuthID o SteamID64)
- * @param app        AppID del juego
- * @return           Resultado de tipo EUserHasLicenseForAppResult
+ * @param authid     Player SteamID (AuthID or SteamID64)
+ * @param app        Game AppID
+ * @return           EUserHasLicenseForAppResult value
  */
 native EUserHasLicenseForAppResult SteamWorks_HasLicenseForAppId(int authid, int app);
 
 /**
- * Obtiene el SteamID del cliente como cadena de texto
+ * Gets the client SteamID as a string.
  *
- * @param client     Índice del cliente conectado
- * @param sSteamID   Buffer donde se almacenará el SteamID como string
- * @param length     Longitud máxima del buffer
- * @return           Cantidad de caracteres escritos en sSteamID (excluyendo null terminator)
+ * @param client     Connected client index
+ * @param steamId    Buffer that receives the SteamID string
+ * @param length     Maximum buffer length
+ * @return           Number of characters written to steamId (excluding the null terminator)
  */
-native int SteamWorks_GetClientSteamID(int client, char[] sSteamID, int length);
+native int SteamWorks_GetClientSteamID(int client, char[] steamId, int length);
 
 /**
- * Solicita a Steam las estadísticas de un jugador usando su SteamID (AuthID)
+ * Requests a player's stats from Steam using their SteamID (AuthID).
  *
- * @param authid     SteamID del jugador (AuthID o SteamID64)
- * @param appid      AppID del juego (por ejemplo, 550 para L4D2)
- * @return           true si la solicitud fue enviada correctamente
+ * @param authid     Player SteamID (AuthID or SteamID64)
+ * @param appid      Game AppID (for example, 550 for L4D2)
+ * @return           true if the request was sent successfully
  */
 native bool SteamWorks_RequestStatsAuthID(int authid, int appid);
 
 /**
- * Solicita a Steam las estadísticas de un cliente conectado
+ * Requests stats from Steam for a connected client.
  *
- * @param client     Índice del cliente
- * @param appid      AppID del juego
- * @return           true si la solicitud fue enviada correctamente
+ * @param client     Client index
+ * @param appid      Game AppID
+ * @return           true if the request was sent successfully
  */
 native bool SteamWorks_RequestStats(int client, int appid);
 
 /**
- * Obtiene el valor entero de una estadística del cliente
+ * Gets the integer value of a client stat.
  *
- * @param client     Índice del cliente
- * @param sKey       Nombre de la estadística a consultar
- * @param value      Variable donde se almacenará el valor
- * @return           true si la estadística se recuperó correctamente
+ * @param client     Client index
+ * @param key        Stat name to query
+ * @param value      Variable that receives the value
+ * @return           true if the stat was retrieved successfully
  */
-native bool SteamWorks_GetStatCell(int client, const char[] sKey, int &value);
+native bool SteamWorks_GetStatCell(int client, const char[] key, int &value);
 
 /**
- * Obtiene el valor entero de una estadística usando el SteamID del jugador
+ * Gets the integer value of a stat using the player's SteamID.
  *
- * @param authid     SteamID del jugador (AuthID o SteamID64)
- * @param sKey       Nombre de la estadística a consultar
- * @param value      Variable donde se almacenará el valor
- * @return           true si la estadística se recuperó correctamente
+ * @param authid     Player SteamID (AuthID or SteamID64)
+ * @param key        Stat name to query
+ * @param value      Variable that receives the value
+ * @return           true if the stat was retrieved successfully
  */
-native bool SteamWorks_GetStatAuthIDCell(int authid, const char[] sKey, int &value);
+native bool SteamWorks_GetStatAuthIDCell(int authid, const char[] key, int &value);
 
 /**
- * Obtiene el valor flotante de una estadística del cliente
+ * Gets the floating-point value of a client stat.
  *
- * @param client     Índice del cliente
- * @param sKey       Nombre de la estadística a consultar
- * @param value      Variable donde se almacenará el valor float
- * @return           true si la estadística se recuperó correctamente
+ * @param client     Client index
+ * @param key        Stat name to query
+ * @param value      Variable that receives the float value
+ * @return           true if the stat was retrieved successfully
  */
-native bool SteamWorks_GetStatFloat(int client, const char[] sKey, float &value);
+native bool SteamWorks_GetStatFloat(int client, const char[] key, float &value);
 
 /**
- * Obtiene el valor flotante de una estadística usando el SteamID del jugador
+ * Gets the floating-point value of a stat using the player's SteamID.
  *
- * @param authid     SteamID del jugador (AuthID o SteamID64)
- * @param sKey       Nombre de la estadística a consultar
- * @param value      Variable donde se almacenará el valor float
- * @return           true si la estadística se recuperó correctamente
+ * @param authid     Player SteamID (AuthID or SteamID64)
+ * @param key        Stat name to query
+ * @param value      Variable that receives the float value
+ * @return           true if the stat was retrieved successfully
  */
-native bool SteamWorks_GetStatAuthIDFloat(int authid, const char[] sKey, float &value);
+native bool SteamWorks_GetStatAuthIDFloat(int authid, const char[] key, float &value);
 
 /**
- * Crea una nueva solicitud HTTP
+ * Creates a new HTTP request.
  *
- * @param method     Método HTTP a utilizar (GET, POST, etc.)
- * @param sURL       URL de destino para la solicitud
- * @return           Handle a la solicitud creada, o INVALID_HANDLE si falla
+ * @param method     HTTP method to use (GET, POST, etc.)
+ * @param url        Target URL for the request
+ * @return           Handle to the created request, or INVALID_HANDLE on failure
  */
-native Handle SteamWorks_CreateHTTPRequest(EHTTPMethod method, const char[] sURL);
+native Handle SteamWorks_CreateHTTPRequest(EHTTPMethod method, const char[] url);
 
 /**
- * Establece valores contextuales asociados a la solicitud HTTP (útiles en callbacks)
+ * Sets contextual values associated with an HTTP request for later callbacks.
  *
- * @param hHandle    Handle de la solicitud HTTP
- * @param data1      Valor personalizado (por ejemplo, ID de usuario, referencia, etc.)
- * @param data2      Segundo valor opcional
- * @return           true si se asignaron correctamente los datos
+ * @param request    HTTP request handle
+ * @param data1      Custom value (for example, user ID or reference)
+ * @param data2      Optional secondary value
+ * @return           true if the values were assigned successfully
  */
-native bool SteamWorks_SetHTTPRequestContextValue(Handle hHandle, any data1, any data2=0);
+native bool SteamWorks_SetHTTPRequestContextValue(Handle request, any data1, any data2=0);
 
 /**
- * Establece el timeout de actividad de red para la solicitud HTTP
+ * Sets the network activity timeout for an HTTP request.
  *
- * @param hHandle    Handle de la solicitud HTTP
- * @param timeout    Tiempo máximo en segundos antes de considerar la solicitud como fallida
- * @return           true si se configuró correctamente
+ * @param request    HTTP request handle
+ * @param timeout    Maximum time in seconds before considering the request failed
+ * @return           true if configured successfully
  */
-native bool SteamWorks_SetHTTPRequestNetworkActivityTimeout(Handle hHandle, int timeout);
+native bool SteamWorks_SetHTTPRequestNetworkActivityTimeout(Handle request, int timeout);
 
 /**
- * Añade o reemplaza una cabecera HTTP en la solicitud
+ * Adds or replaces an HTTP header on the request.
  *
- * @param hHandle    Handle de la solicitud HTTP
- * @param sName      Nombre de la cabecera (por ejemplo, "Content-Type")
- * @param sValue     Valor de la cabecera
- * @return           true si se estableció correctamente
+ * @param request    HTTP request handle
+ * @param name       Header name (for example, "Content-Type")
+ * @param value      Header value
+ * @return           true if set successfully
  */
-native bool SteamWorks_SetHTTPRequestHeaderValue(Handle hHandle, const char[] sName, const char[] sValue);
+native bool SteamWorks_SetHTTPRequestHeaderValue(Handle request, const char[] name, const char[] value);
 
 /**
- * Añade un parámetro de tipo GET o POST a la solicitud HTTP
+ * Adds a GET or POST parameter to the HTTP request.
  *
- * @param hHandle    Handle de la solicitud HTTP
- * @param sName      Nombre del parámetro
- * @param sValue     Valor del parámetro
- * @return           true si se añadió correctamente
+ * @param request    HTTP request handle
+ * @param name       Parameter name
+ * @param value      Parameter value
+ * @return           true if added successfully
  */
-native bool SteamWorks_SetHTTPRequestGetOrPostParameter(Handle hHandle, const char[] sName, const char[] sValue);
+native bool SteamWorks_SetHTTPRequestGetOrPostParameter(Handle request, const char[] name, const char[] value);
 
 /**
- * Define la cadena del User-Agent para la solicitud HTTP
+ * Sets the User-Agent string for the HTTP request.
  *
- * @param hHandle         Handle de la solicitud HTTP
- * @param sUserAgentInfo  Cadena del User-Agent a utilizar
- * @return                true si se configuró correctamente
+ * @param request         HTTP request handle
+ * @param userAgentInfo   User-Agent string to use
+ * @return                true if configured successfully
  */
-native bool SteamWorks_SetHTTPRequestUserAgentInfo(Handle hHandle, const char[] sUserAgentInfo);
+native bool SteamWorks_SetHTTPRequestUserAgentInfo(Handle request, const char[] userAgentInfo);
 
 /**
- * Indica si la solicitud HTTP debe requerir un certificado SSL verificado
+ * Sets whether the HTTP request must require a verified SSL certificate.
  *
- * @param hHandle                  Handle de la solicitud HTTP
- * @param bRequireVerifiedCertificate  true para requerir certificado válido, false para permitir cualquiera
- * @return                         true si se configuró correctamente
+ * @param request                  HTTP request handle
+ * @param requireVerifiedCertificate  true to require a valid certificate, false to allow any certificate
+ * @return                         true if configured successfully
  */
-native bool SteamWorks_SetHTTPRequestRequiresVerifiedCertificate(Handle hHandle, bool bRequireVerifiedCertificate);
+native bool SteamWorks_SetHTTPRequestRequiresVerifiedCertificate(Handle request, bool requireVerifiedCertificate);
 
 /**
- * Establece el timeout absoluto en milisegundos para la solicitud HTTP
+ * Sets the absolute timeout for the HTTP request in milliseconds.
  *
- * @param hHandle          Handle de la solicitud HTTP
- * @param unMilliseconds   Tiempo máximo en milisegundos antes de cancelar la solicitud
- * @return                 true si se configuró correctamente
+ * @param request          HTTP request handle
+ * @param timeoutMs        Maximum time in milliseconds before canceling the request
+ * @return                 true if configured successfully
  */
-native bool SteamWorks_SetHTTPRequestAbsoluteTimeoutMS(Handle hHandle, int unMilliseconds);
+native bool SteamWorks_SetHTTPRequestAbsoluteTimeoutMS(Handle request, int timeoutMs);
 
 
 /**
- * Callback que se ejecuta al completar una solicitud HTTP enviada con SteamWorks
+ * Callback fired when an HTTP request sent with SteamWorks completes.
  *
- * Este typeset permite definir una función que será llamada cuando finalice la solicitud,
- * ya sea con éxito o error. Se puede usar para procesar el resultado, leer el cuerpo de respuesta, etc.
+ * This typeset defines a function that is called when the request finishes,
+ * whether successfully or with an error. It can be used to process the result,
+ * read the response body, and so on.
  */
 typeset SteamWorksHTTPRequestCompleted
 {
 	/**
-	 * Callback básico sin datos contextuales
+	 * Basic callback without contextual data.
 	 *
-	 * @param hRequest            Handle de la solicitud HTTP
-	 * @param bFailure            true si ocurrió un error de red o interno
-	 * @param bRequestSuccessful  true si la solicitud se completó correctamente (aunque podría devolver errores HTTP)
-	 * @param eStatusCode         Código HTTP de la respuesta (200, 404, 500, etc.)
+	 * @param request             HTTP request handle
+	 * @param failed              true if a network or internal error occurred
+	 * @param requestSuccessful   true if the request completed successfully (it may still return HTTP errors)
+	 * @param statusCode          HTTP response code (200, 404, 500, etc.)
 	 */
-	function void (Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode);
+	function void (Handle request, bool failed, bool requestSuccessful, EHTTPStatusCode statusCode);
 
 	/**
-	 * Callback con un dato contextual personalizado (data1)
+	 * Callback with one custom contextual value (data1).
 	 *
-	 * @param hRequest            Handle de la solicitud HTTP
-	 * @param bFailure            true si ocurrió un error
-	 * @param bRequestSuccessful  true si la solicitud fue completada
-	 * @param eStatusCode         Código de estado HTTP
-	 * @param data1               Dato contextual definido por el usuario (ej: identificador de jugador)
+	 * @param request             HTTP request handle
+	 * @param failed              true if an error occurred
+	 * @param requestSuccessful   true if the request completed
+	 * @param statusCode          HTTP status code
+	 * @param data1               User-defined contextual value (for example, a player identifier)
 	 */
-	function void (Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1);
+	function void (Handle request, bool failed, bool requestSuccessful, EHTTPStatusCode statusCode, any data1);
 
 	/**
-	 * Callback con dos datos contextuales personalizados (data1 y data2)
+	 * Callback with two custom contextual values (data1 and data2).
 	 *
-	 * @param hRequest            Handle de la solicitud HTTP
-	 * @param bFailure            true si ocurrió un error
-	 * @param bRequestSuccessful  true si la solicitud fue completada
-	 * @param eStatusCode         Código de estado HTTP
-	 * @param data1               Primer dato contextual
-	 * @param data2               Segundo dato contextual
+	 * @param request             HTTP request handle
+	 * @param failed              true if an error occurred
+	 * @param requestSuccessful   true if the request completed
+	 * @param statusCode          HTTP status code
+	 * @param data1               First contextual value
+	 * @param data2               Second contextual value
 	 */
-	function void (Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, any data1, any data2);
+	function void (Handle request, bool failed, bool requestSuccessful, EHTTPStatusCode statusCode, any data1, any data2);
 };
 
 /**
- * Callback que se ejecuta cuando se reciben las cabeceras HTTP de una solicitud
+ * Callback fired when HTTP headers are received for a request.
  *
- * Este evento ocurre antes de que se reciba el cuerpo de la respuesta.
- * Es útil si deseas inspeccionar o procesar las cabeceras individualmente.
+ * This event occurs before the response body is received.
+ * It is useful when inspecting or processing headers individually.
  */
 typeset SteamWorksHTTPHeadersReceived
 {
 	/**
-	 * Callback básico sin datos contextuales
+	 * Basic callback without contextual data.
 	 *
-	 * @param hRequest   Handle de la solicitud HTTP
-	 * @param bFailure   true si ocurrió un error de red al recibir las cabeceras
+	 * @param request    HTTP request handle
+	 * @param failed     true if a network error occurred while receiving headers
 	 */
-	function void (Handle hRequest, bool bFailure);
+	function void (Handle request, bool failed);
 
 	/**
-	 * Callback con un dato contextual personalizado (data1)
+	 * Callback with one custom contextual value (data1).
 	 *
-	 * @param hRequest   Handle de la solicitud HTTP
-	 * @param bFailure   true si ocurrió un error al recibir las cabeceras
-	 * @param data1      Dato contextual definido por el usuario
+	 * @param request    HTTP request handle
+	 * @param failed     true if an error occurred while receiving headers
+	 * @param data1      User-defined contextual value
 	 */
-	function void (Handle hRequest, bool bFailure, any data1);
+	function void (Handle request, bool failed, any data1);
 
 	/**
-	 * Callback con dos datos contextuales personalizados (data1 y data2)
+	 * Callback with two custom contextual values (data1 and data2).
 	 *
-	 * @param hRequest   Handle de la solicitud HTTP
-	 * @param bFailure   true si ocurrió un error al recibir las cabeceras
-	 * @param data1      Primer dato contextual
-	 * @param data2      Segundo dato contextual
+	 * @param request    HTTP request handle
+	 * @param failed     true if an error occurred while receiving headers
+	 * @param data1      First contextual value
+	 * @param data2      Second contextual value
 	 */
-	function void (Handle hRequest, bool bFailure, any data1, any data2);
+	function void (Handle request, bool failed, any data1, any data2);
 };
 
 /**
- * Callback que se ejecuta al recibir un fragmento de datos del cuerpo de la respuesta HTTP
+ * Callback fired when a chunk of HTTP response body data is received.
  *
- * Este evento es útil cuando se utiliza streaming de respuesta con SteamWorks,
- * permitiendo procesar los datos por partes conforme van llegando.
+ * This event is useful when using streamed responses with SteamWorks,
+ * allowing data to be processed incrementally as it arrives.
  */
 typeset SteamWorksHTTPDataReceived
 {
 	/**
-	 * Callback básico sin datos contextuales
+	 * Basic callback without contextual data.
 	 *
-	 * @param hRequest        Handle de la solicitud HTTP
-	 * @param bFailure        true si hubo error al recibir los datos
-	 * @param offset          Posición (en bytes) desde donde se recibió el fragmento
-	 * @param bytesreceived   Cantidad de bytes recibidos en este fragmento
+	 * @param request         HTTP request handle
+	 * @param failed          true if an error occurred while receiving data
+	 * @param offset          Byte offset where this chunk starts
+	 * @param bytesReceived   Number of bytes received in this chunk
 	 */
-	function void (Handle hRequest, bool bFailure, int offset, int bytesreceived);
+	function void (Handle request, bool failed, int offset, int bytesReceived);
 
 	/**
-	 * Callback con un dato contextual personalizado (data1)
+	 * Callback with one custom contextual value (data1).
 	 *
-	 * @param hRequest        Handle de la solicitud HTTP
-	 * @param bFailure        true si hubo error
-	 * @param offset          Posición desde donde se recibió el fragmento
-	 * @param bytesreceived   Tamaño del fragmento recibido
-	 * @param data1           Dato contextual personalizado
+	 * @param request         HTTP request handle
+	 * @param failed          true if an error occurred
+	 * @param offset          Offset where the chunk was received
+	 * @param bytesReceived   Size of the received chunk
+	 * @param data1           Custom contextual value
 	 */
-	function void (Handle hRequest, bool bFailure, int offset, int bytesreceived, any data1);
+	function void (Handle request, bool failed, int offset, int bytesReceived, any data1);
 
 	/**
-	 * Callback con dos datos contextuales personalizados (data1 y data2)
+	 * Callback with two custom contextual values (data1 and data2).
 	 *
-	 * @param hRequest        Handle de la solicitud HTTP
-	 * @param bFailure        true si hubo error
-	 * @param offset          Posición desde donde se recibió el fragmento
-	 * @param bytesreceived   Tamaño del fragmento recibido
-	 * @param data1           Primer dato contextual
-	 * @param data2           Segundo dato contextual
+	 * @param request         HTTP request handle
+	 * @param failed          true if an error occurred
+	 * @param offset          Offset where the chunk was received
+	 * @param bytesReceived   Size of the received chunk
+	 * @param data1           First contextual value
+	 * @param data2           Second contextual value
 	 */
-	function void (Handle hRequest, bool bFailure, int offset, int bytesreceived, any data1, any data2);
+	function void (Handle request, bool failed, int offset, int bytesReceived, any data1, any data2);
 };
 
 
 /**
- * Callback que se ejecuta cuando se recibe el cuerpo completo de una respuesta HTTP
+ * Callback fired when the full HTTP response body is received.
  *
- * Este typeset permite definir cómo manejar el contenido una vez descargado,
- * ya sea como cadena de texto o como datos binarios.
+ * This typeset defines how to handle the content once downloaded,
+ * either as a text string or as binary data.
  */
 typeset SteamWorksHTTPBodyCallback
 {
 	/**
-	 * Callback básico que recibe el cuerpo como texto
+	 * Basic callback that receives the body as text.
 	 *
-	 * @param sData     Cadena de texto con el contenido completo de la respuesta
+	 * @param data      Text string containing the full response body
 	 */
-	function void (const char[] sData);
+	function void (const char[] data);
 
 	/**
-	 * Callback que recibe el cuerpo como texto y un valor contextual
+	 * Callback that receives the body as text plus a contextual value.
 	 *
-	 * @param sData     Cadena de texto con el contenido de la respuesta
-	 * @param value     Dato contextual definido por el usuario
+	 * @param data      Text string containing the response body
+	 * @param value     User-defined contextual value
 	 */
-	function void (const char[] sData, any value);
+	function void (const char[] data, any value);
 
 	/**
-	 * Callback que recibe datos binarios como arreglo de enteros
+	 * Callback that receives binary data as an integer array.
 	 *
-	 * @param data      Arreglo de datos binarios (bytes)
-	 * @param value     Dato contextual definido por el usuario
-	 * @param datalen   Longitud del arreglo de datos recibido
+	 * @param data      Binary data array (bytes)
+	 * @param value     User-defined contextual value
+	 * @param datalen   Length of the received data array
 	 */
 	function void (const int[] data, any value, int datalen);
 };
 
 /**
- * Asigna los callbacks para manejar eventos de una solicitud HTTP
+ * Assigns callbacks used to handle HTTP request events.
  *
- * @param hHandle     Handle de la solicitud HTTP
- * @param fCompleted  Función callback a ejecutar cuando la solicitud finaliza
- * @param fHeaders    Función callback a ejecutar al recibir las cabeceras (opcional)
- * @param fData       Función callback para recepción de datos en streaming (opcional)
- * @param hCalling    Plugin que maneja el callback (null = actual)
- * @return            true si los callbacks se configuraron correctamente
+ * @param request     HTTP request handle
+ * @param onCompleted Callback invoked when the request completes
+ * @param onHeaders   Callback invoked when headers are received (optional)
+ * @param onData      Callback invoked for streamed response data (optional)
+ * @param caller      Plugin that owns the callback (null = current plugin)
+ * @return            true if the callbacks were configured successfully
  */
 native bool SteamWorks_SetHTTPCallbacks(
-	Handle hHandle,
-	SteamWorksHTTPRequestCompleted fCompleted = INVALID_FUNCTION,
-	SteamWorksHTTPHeadersReceived fHeaders = INVALID_FUNCTION,
-	SteamWorksHTTPDataReceived fData = INVALID_FUNCTION,
-	Handle hCalling = null
+	Handle request,
+	SteamWorksHTTPRequestCompleted onCompleted = INVALID_FUNCTION,
+	SteamWorksHTTPHeadersReceived onHeaders = INVALID_FUNCTION,
+	SteamWorksHTTPDataReceived onData = INVALID_FUNCTION,
+	Handle caller = null
 );
 
 /**
- * Envía una solicitud HTTP previamente creada
+ * Sends a previously created HTTP request.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @return            true si la solicitud se envió correctamente
+ * @param request     HTTP request handle
+ * @return            true if the request was sent successfully
  */
-native bool SteamWorks_SendHTTPRequest(Handle hRequest);
+native bool SteamWorks_SendHTTPRequest(Handle request);
 
 /**
- * Envía una solicitud HTTP y permite recibir el cuerpo por partes (streaming)
+ * Sends an HTTP request and allows the body to be received in chunks (streaming).
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @return            true si la solicitud fue enviada correctamente
+ * @param request     HTTP request handle
+ * @return            true if the request was sent successfully
  */
-native bool SteamWorks_SendHTTPRequestAndStreamResponse(Handle hRequest);
+native bool SteamWorks_SendHTTPRequestAndStreamResponse(Handle request);
 
 /**
- * Difere (retrasa) el envío de la solicitud HTTP hasta ser procesada más adelante
+ * Defers sending the HTTP request until it is processed later.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @return            true si se puso en espera exitosamente
+ * @param request     HTTP request handle
+ * @return            true if the request was deferred successfully
  */
-native bool SteamWorks_DeferHTTPRequest(Handle hRequest);
+native bool SteamWorks_DeferHTTPRequest(Handle request);
 
 /**
- * Prioriza esta solicitud HTTP por sobre otras en cola
+ * Prioritizes this HTTP request over others in the queue.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @return            true si fue priorizada correctamente
+ * @param request     HTTP request handle
+ * @return            true if prioritized successfully
  */
-native bool SteamWorks_PrioritizeHTTPRequest(Handle hRequest);
+native bool SteamWorks_PrioritizeHTTPRequest(Handle request);
 
 /**
- * Obtiene el tamaño de una cabecera específica en la respuesta HTTP
+ * Gets the size of a specific header in the HTTP response.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @param sHeader     Nombre de la cabecera (por ejemplo: "Content-Type")
- * @param size        Variable donde se almacenará el tamaño de la cabecera
- * @return            true si se obtuvo correctamente
+ * @param request     HTTP request handle
+ * @param header      Header name (for example: "Content-Type")
+ * @param size        Variable that receives the header size
+ * @return            true if retrieved successfully
  */
-native bool SteamWorks_GetHTTPResponseHeaderSize(Handle hRequest, const char[] sHeader, int &size);
+native bool SteamWorks_GetHTTPResponseHeaderSize(Handle request, const char[] header, int &size);
 
 /**
- * Obtiene el valor de una cabecera específica de la respuesta HTTP
+ * Gets the value of a specific header from the HTTP response.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @param sHeader     Nombre de la cabecera
- * @param sValue      Cadena destino donde se copiará el valor
- * @param size        Tamaño máximo del buffer sValue
- * @return            true si se obtuvo correctamente
+ * @param request     HTTP request handle
+ * @param header      Header name
+ * @param value       Destination buffer that receives the value
+ * @param size        Maximum value buffer length
+ * @return            true if retrieved successfully
  */
-native bool SteamWorks_GetHTTPResponseHeaderValue(Handle hRequest, const char[] sHeader, char[] sValue, int size);
+native bool SteamWorks_GetHTTPResponseHeaderValue(Handle request, const char[] header, char[] value, int size);
 
 /**
- * Obtiene el tamaño total del cuerpo de la respuesta HTTP
+ * Gets the total size of the HTTP response body.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @param size        Variable donde se almacenará el tamaño en bytes
- * @return            true si se obtuvo correctamente
+ * @param request     HTTP request handle
+ * @param size        Variable that receives the size in bytes
+ * @return            true if retrieved successfully
  */
-native bool SteamWorks_GetHTTPResponseBodySize(Handle hRequest, int &size);
+native bool SteamWorks_GetHTTPResponseBodySize(Handle request, int &size);
 
 /**
- * Obtiene el cuerpo completo de la respuesta HTTP en una cadena de texto
+ * Gets the full HTTP response body as raw bytes.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @param sBody       Buffer donde se almacenará el contenido de la respuesta
- * @param length      Tamaño máximo del buffer
- * @return            true si se obtuvo correctamente
+ * @param request     HTTP request handle
+ * @param body        Buffer that receives the response bytes
+ * @param length      Maximum number of bytes to read
+ * @return            true if retrieved successfully
  */
-native bool SteamWorks_GetHTTPResponseBodyData(Handle hRequest, char[] sBody, int length);
+native bool SteamWorks_GetHTTPResponseBodyData(Handle request, char[] body, int length);
 
 /**
- * Obtiene un fragmento del cuerpo de la respuesta HTTP (para streaming manual)
+ * Gets the HTTP response body as a null-terminated string.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @param cOffset     Offset desde donde empezar a leer el cuerpo
- * @param sBody       Buffer donde se almacenará el fragmento
- * @param length      Tamaño del fragmento a leer
- * @return            true si se obtuvo correctamente
+ * This helper is intended for textual bodies such as JSON, HTML, or plain text.
+ * It reads up to `length - 1` bytes and always appends a null terminator.
+ * If the response body is larger than the provided buffer, the string will be truncated.
+ *
+ * This native should not be used for binary payloads.
+ *
+ * @param request     HTTP request handle
+ * @param body        Buffer that receives the string
+ * @param length      Maximum buffer length, including the null terminator
+ * @param written     Number of characters written, excluding the null terminator
+ * @param truncated   Set to true if the body did not fit in the buffer
+ * @return            true if retrieved successfully
  */
-native bool SteamWorks_GetHTTPStreamingResponseBodyData(Handle hRequest, int cOffset, char[] sBody, int length);
+native bool SteamWorks_GetHTTPResponseBodyString(Handle request, char[] body, int length, int &written, bool &truncated);
 
 /**
- * Obtiene el progreso actual de descarga de una solicitud HTTP
+ * Gets a fragment of the HTTP response body (for manual streaming).
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @param percent     Variable donde se almacenará el porcentaje descargado (0.0 a 100.0)
- * @return            true si se obtuvo correctamente
+ * @param request     HTTP request handle
+ * @param offset      Offset from which to start reading the body
+ * @param body        Buffer that receives the fragment
+ * @param length      Fragment size to read
+ * @return            true if retrieved successfully
  */
-native bool SteamWorks_GetHTTPDownloadProgressPct(Handle hRequest, float &percent);
+native bool SteamWorks_GetHTTPStreamingResponseBodyData(Handle request, int offset, char[] body, int length);
 
 /**
- * Verifica si una solicitud HTTP fue cancelada por exceder el tiempo límite
+ * Gets the current download progress of an HTTP request.
  *
- * @param hRequest        Handle de la solicitud HTTP
- * @param bWasTimedOut    Variable que será true si hubo timeout
- * @return                true si se pudo verificar correctamente
+ * @param request     HTTP request handle
+ * @param percent     Variable that receives the downloaded percentage (0.0 to 100.0)
+ * @return            true if retrieved successfully
  */
-native bool SteamWorks_GetHTTPRequestWasTimedOut(Handle hRequest, bool &bWasTimedOut);
+native bool SteamWorks_GetHTTPDownloadProgressPct(Handle request, float &percent);
 
 /**
- * Establece el cuerpo de una solicitud POST de forma manual
+ * Checks whether an HTTP request was canceled because it exceeded the time limit.
  *
- * @param hRequest       Handle de la solicitud HTTP
- * @param sContentType   Tipo de contenido (por ejemplo: "application/json")
- * @param sBody          Datos del cuerpo (contenido bruto)
- * @param bodylen        Longitud de los datos a enviar
- * @return               true si se configuró correctamente
+ * @param request         HTTP request handle
+ * @param wasTimedOut     Variable set to true if a timeout occurred
+ * @return                true if checked successfully
  */
-native bool SteamWorks_SetHTTPRequestRawPostBody(Handle hRequest, const char[] sContentType, const char[] sBody, int bodylen);
+native bool SteamWorks_GetHTTPRequestWasTimedOut(Handle request, bool &wasTimedOut);
 
 /**
- * Establece el cuerpo de una solicitud POST desde un archivo
+ * Sets the body of a POST request manually.
  *
- * @param hRequest       Handle de la solicitud HTTP
- * @param sContentType   Tipo de contenido (ej: "application/octet-stream")
- * @param sFileName      Ruta del archivo local a usar como cuerpo
- * @return               true si se configuró correctamente
+ * @param request        HTTP request handle
+ * @param contentType    Content type (for example: "application/json")
+ * @param body           Body data (raw content)
+ * @param bodyLength     Length of the data to send
+ * @return               true if configured successfully
  */
-native bool SteamWorks_SetHTTPRequestRawPostBodyFromFile(Handle hRequest, const char[] sContentType, const char[] sFileName);
+native bool SteamWorks_SetHTTPRequestRawPostBody(Handle request, const char[] contentType, const char[] body, int bodyLength);
 
 /**
- * Asocia un callback para manejar el cuerpo de la respuesta HTTP cuando esté completo
+ * Sets the body of a POST request from a file.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @param fCallback   Función a ejecutar cuando se reciba el cuerpo
- * @param data        Dato contextual personalizado (opcional)
- * @param hPlugin     Plugin donde se encuentra el callback (null para el actual)
- * @return            true si se configuró correctamente
+ * @param request        HTTP request handle
+ * @param contentType    Content type (for example: "application/octet-stream")
+ * @param fileName       Local file path to use as the body
+ * @return               true if configured successfully
  */
-native bool SteamWorks_GetHTTPResponseBodyCallback(Handle hRequest, SteamWorksHTTPBodyCallback fCallback, any data = 0, Handle hPlugin = null);
+native bool SteamWorks_SetHTTPRequestRawPostBodyFromFile(Handle request, const char[] contentType, const char[] fileName);
 
 /**
- * Escribe el cuerpo de la respuesta HTTP a un archivo en disco
+ * Attaches a callback that handles the HTTP response body once it is complete.
  *
- * @param hRequest    Handle de la solicitud HTTP
- * @param sFileName   Ruta del archivo donde se escribirá el contenido
- * @return            true si se guardó correctamente
+ * @param request     HTTP request handle
+ * @param callback    Function to execute when the body is received
+ * @param data        Optional custom contextual value
+ * @param plugin      Plugin that owns the callback (null for the current one)
+ * @return            true if configured successfully
  */
-native bool SteamWorks_WriteHTTPResponseBodyToFile(Handle hRequest, const char[] sFileName);
+native bool SteamWorks_GetHTTPResponseBodyCallback(Handle request, SteamWorksHTTPBodyCallback callback, any data = 0, Handle plugin = null);
 
 /**
- * Evento llamado cuando se valida un cliente mediante Steam (versión antigua, reemplazada por SteamWorks_OnValidateClient)
+ * Writes the HTTP response body to a file on disk.
  *
- * @param ownerauthid   SteamID del dueño real del juego (puede diferir si se usa Family Sharing)
- * @param authid        SteamID del cliente que se conecta
+ * @param request     HTTP request handle
+ * @param fileName    Path to the file where the content will be written
+ * @return            true if written successfully
+ */
+native bool SteamWorks_WriteHTTPResponseBodyToFile(Handle request, const char[] fileName);
+
+/**
+ * Event fired when a client is validated through Steam (legacy version, replaced by SteamWorks_OnValidateClient).
+ *
+ * @param ownerauthid   SteamID of the real game owner (may differ when Family Sharing is used)
+ * @param authid        SteamID of the connecting client
  */
 forward void SW_OnValidateClient(int ownerauthid, int authid);
 
 /**
- * Evento llamado cuando Steam valida exitosamente a un cliente
+ * Event fired when Steam successfully validates a client.
  *
- * @param ownerauthid   SteamID del propietario real del juego
- * @param authid        SteamID del cliente conectado
+ * @param ownerauthid   SteamID of the real game owner
+ * @param authid        SteamID of the connected client
  *
- * Este evento es útil para detectar casos de Family Sharing (si ownerauthid != authid).
+ * This event is useful for detecting Family Sharing cases (if ownerauthid != authid).
  */
 forward void SteamWorks_OnValidateClient(int ownerauthid, int authid);
 
 /**
- * Evento llamado cuando el servidor logra conectarse exitosamente a Steam
+ * Event fired when the server connects successfully to Steam.
  *
- * Puede utilizarse para ejecutar tareas que dependan de conexión con Steam,
- * como validación de licencias o inicialización de estadísticas.
+ * This can be used to run tasks that depend on Steam connectivity,
+ * such as license validation or stats initialization.
  */
 forward void SteamWorks_SteamServersConnected();
 
 /**
- * Evento llamado cuando ocurre un fallo al intentar conectar el servidor a Steam
+ * Event fired when the server fails to connect to Steam.
  *
- * @param result        Código del error ocurrido (EResult)
+ * @param result        Error code that occurred (EResult)
  *
- * Puede deberse a red caída, steamclient incompatible, VAC deshabilitado, etc.
+ * This may happen due to network issues, an incompatible steamclient, VAC being disabled, and so on.
  */
 forward void SteamWorks_SteamServersConnectFailure(EResult result);
 
 /**
- * Evento llamado cuando el servidor pierde su conexión con Steam
+ * Event fired when the server loses its Steam connection.
  *
- * @param result        Motivo de la desconexión (EResult)
+ * @param result        Disconnect reason (EResult)
  *
- * Ideal para registrar en logs o advertir al administrador.
+ * Useful for logging or warning the server administrator.
  */
 forward void SteamWorks_SteamServersDisconnected(EResult result);
 
 /**
- * Evento llamado cuando Steam solicita que el servidor se reinicie
+ * Event fired when Steam requests the server to restart.
  *
- * Esto puede ocurrir por cambios de IP u otras condiciones internas de Steam.
+ * This can happen due to IP changes or other Steam-side conditions.
  *
- * @return Plugin_Handled para evitar el reinicio, Plugin_Continue para permitirlo
+ * @return Plugin_Handled to prevent the restart, Plugin_Continue to allow it
  */
 forward Action SteamWorks_RestartRequested();
 
 /**
- * Evento llamado cuando Steam solicita un Game Server Token (si el juego lo requiere)
+ * Event fired when Steam requests a Game Server Token (if the game requires it).
  *
- * @param sToken     Buffer donde debe escribirse el token
- * @param maxlen     Tamaño máximo del buffer
+ * @param token      Buffer where the token should be written
+ * @param maxlen     Maximum buffer length
  *
- * Nota: L4D2 generalmente no requiere token, pero este forward es útil para juegos que sí lo usan.
+ * Note: L4D2 usually does not require a token, but this forward is useful for games that do.
  */
-forward void SteamWorks_TokenRequested(char[] sToken, int maxlen);
+forward void SteamWorks_TokenRequested(char[] token, int maxlen);
 
 /**
- * Evento llamado cuando se detecta el estado de grupo de un cliente con respecto a un grupo de Steam
+ * Event fired when the group status of a client is resolved for a Steam group.
  *
- * @param authid     SteamID del cliente
- * @param groupid    ID del grupo de Steam consultado
- * @param isMember   true si el cliente es miembro del grupo
- * @param isOfficer  true si el cliente es oficial del grupo
+ * @param authid     SteamID of the client
+ * @param groupid    Queried Steam group ID
+ * @param isMember   true if the client is a member of the group
+ * @param isOfficer  true if the client is an officer of the group
  */
 forward void SteamWorks_OnClientGroupStatus(int authid, int groupid, bool isMember, bool isOfficer);
 
 /**
- * Envia un mensaje binario al Game Coordinator del juego
+ * Sends a binary message to the game's Game Coordinator.
  *
- * @param unMsgType  Tipo de mensaje definido por el juego
- * @param pubData    Datos del mensaje
- * @param cubData    Longitud de los datos
- * @return           Resultado de envío (EGCResults)
+ * @param messageType Message type defined by the game
+ * @param data        Message data
+ * @param dataLength  Data length
+ * @return           Send result (EGCResults)
  */
-forward EGCResults SteamWorks_GCSendMessage(int unMsgType, const char[] pubData, int cubData);
+forward EGCResults SteamWorks_GCSendMessage(int messageType, const char[] data, int dataLength);
 
 /**
- * Evento llamado cuando se recibe un mensaje del Game Coordinator
+ * Event fired when a message is received from the Game Coordinator.
  *
- * @param cubData    Tamaño del mensaje disponible para lectura
+ * @param dataLength Size of the message available for reading
  */
-forward void SteamWorks_GCMsgAvailable(int cubData);
+forward void SteamWorks_GCMsgAvailable(int dataLength);
 
 /**
- * Recupera el mensaje recibido del Game Coordinator
+ * Retrieves a message received from the Game Coordinator.
  *
- * @param punMsgType   Variable donde se almacenará el tipo de mensaje
- * @param pubDest      Buffer donde se guardará el contenido del mensaje
- * @param cubDest      Tamaño máximo del buffer
- * @param pcubMsgSize  Variable donde se guardará el tamaño real del mensaje recibido
- * @return             Resultado de la operación (EGCResults)
+ * @param messageType       Variable that receives the message type
+ * @param destination       Buffer that receives the message contents
+ * @param destinationLength Maximum buffer size
+ * @param messageSize       Variable that receives the actual size of the received message
+ * @return             Operation result (EGCResults)
  */
-forward EGCResults SteamWorks_GCRetrieveMessage(int punMsgType, const char[] pubDest, int cubDest, int pcubMsgSize);
+forward EGCResults SteamWorks_GCRetrieveMessage(int messageType, const char[] destination, int destinationLength, int messageSize);
 
 /**
- * Envia un mensaje al Game Coordinator desde una función nativa
+ * Sends a message to the Game Coordinator from a native function.
  *
- * @param unMsgType  Tipo de mensaje definido por el juego
- * @param pubData    Datos del mensaje
- * @param cubData    Longitud de los datos
- * @return           Resultado de envío (EGCResults)
+ * @param messageType Message type defined by the game
+ * @param data        Message data
+ * @param dataLength  Data length
+ * @return           Send result (EGCResults)
  */
-native EGCResults SteamWorks_SendMessageToGC(int unMsgType, const char[] pubData, int cubData);
+native EGCResults SteamWorks_SendMessageToGC(int messageType, const char[] data, int dataLength);
 
 public Extension __ext_SteamWorks = 
 {
 	name = "SteamWorks",
-	file = "SteamWorks.ext",
+	file = "steamworks.ext",
 #if defined AUTOLOAD_EXTENSIONS
 	autoload = 1,
 #else
@@ -955,6 +974,7 @@ public void __ext_SteamWorks_SetNTVOptional()
 	MarkNativeAsOptional("SteamWorks_GetHTTPResponseHeaderValue");
 	MarkNativeAsOptional("SteamWorks_GetHTTPResponseBodySize");
 	MarkNativeAsOptional("SteamWorks_GetHTTPResponseBodyData");
+	MarkNativeAsOptional("SteamWorks_GetHTTPResponseBodyString");
 	MarkNativeAsOptional("SteamWorks_GetHTTPStreamingResponseBodyData");
 	MarkNativeAsOptional("SteamWorks_GetHTTPDownloadProgressPct");
 	MarkNativeAsOptional("SteamWorks_SetHTTPRequestRawPostBody");

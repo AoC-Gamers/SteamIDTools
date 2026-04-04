@@ -130,28 +130,6 @@ SteamIDToolsBackendStatus GetBackendStatusInternal(SteamIDToolsProvider provider
 }
 
 /**
- * Converts one cached backend status enum to a readable string.
- */
-void GetBackendStatusDisplay(SteamIDToolsProvider provider, char[] szBuffer, int iMaxLen)
-{
-	switch (GetBackendStatusInternal(provider))
-	{
-		case SteamIDToolsBackendStatus_Online:
-		{
-			strcopy(szBuffer, iMaxLen, "online");
-		}
-		case SteamIDToolsBackendStatus_Offline:
-		{
-			strcopy(szBuffer, iMaxLen, "offline");
-		}
-		default:
-		{
-			strcopy(szBuffer, iMaxLen, "unknown");
-		}
-	}
-}
-
-/**
  * Returns true when the provider transport exists and the backend is healthy.
  */
 bool IsProviderReadyInternal(SteamIDToolsProvider provider)
