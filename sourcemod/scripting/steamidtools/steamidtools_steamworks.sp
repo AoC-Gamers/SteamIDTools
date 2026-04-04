@@ -66,6 +66,7 @@ public void OnSteamIDConversionResponse(Handle hRequest, bool bFailure, bool bRe
 		char szError[96];
 		Format(szError, sizeof(szError), "SteamWorks request failed (status %d)", view_as<int>(eStatusCode));
 		CompleteRequest(hPack, false, szError);
+		delete hRequest;
 		return;
 	}
 
@@ -73,21 +74,38 @@ public void OnSteamIDConversionResponse(Handle hRequest, bool bFailure, bool bRe
 	if (!SteamWorks_GetHTTPResponseBodySize(hRequest, iBodySize) || iBodySize <= 0)
 	{
 		CompleteRequest(hPack, false, "Empty response");
+		delete hRequest;
 		return;
 	}
 
 	char[] szResponse = new char[iBodySize + 1];
-	SteamWorks_GetHTTPResponseBodyData(hRequest, szResponse, iBodySize);
-	szResponse[iBodySize] = '\0';
+	int iWritten = 0;
+	bool bTruncated = false;
+	if (!SteamWorks_GetHTTPResponseBodyString(hRequest, szResponse, iBodySize + 1, iWritten, bTruncated))
+	{
+		CompleteRequest(hPack, false, "Failed to read response body");
+		delete hRequest;
+		return;
+	}
+
+	if (bTruncated)
+	{
+		CompleteRequest(hPack, false, "Response body truncated");
+		delete hRequest;
+		return;
+	}
+
 	TrimString(szResponse);
 
 	if (szResponse[0] == '\0')
 	{
 		CompleteRequest(hPack, false, "Empty response");
+		delete hRequest;
 		return;
 	}
 
 	CompleteRequest(hPack, true, szResponse);
+	delete hRequest;
 }
 
 /**
@@ -110,6 +128,7 @@ public void OnSteamIDHealthResponse(Handle hRequest, bool bFailure, bool bReques
 		char szError[96];
 		Format(szError, sizeof(szError), "SteamWorks health check failed (status %d)", view_as<int>(eStatusCode));
 		CompleteHealthCheck(hPack, false, szError);
+		delete hRequest;
 		return;
 	}
 
@@ -117,13 +136,29 @@ public void OnSteamIDHealthResponse(Handle hRequest, bool bFailure, bool bReques
 	if (!SteamWorks_GetHTTPResponseBodySize(hRequest, iBodySize) || iBodySize <= 0)
 	{
 		CompleteHealthCheck(hPack, true, "OK");
+		delete hRequest;
 		return;
 	}
 
 	char[] szResponse = new char[iBodySize + 1];
-	SteamWorks_GetHTTPResponseBodyData(hRequest, szResponse, iBodySize);
-	szResponse[iBodySize] = '\0';
+	int iWritten = 0;
+	bool bTruncated = false;
+	if (!SteamWorks_GetHTTPResponseBodyString(hRequest, szResponse, iBodySize + 1, iWritten, bTruncated))
+	{
+		CompleteHealthCheck(hPack, false, "Failed to read health response");
+		delete hRequest;
+		return;
+	}
+
+	if (bTruncated)
+	{
+		CompleteHealthCheck(hPack, false, "Health response truncated");
+		delete hRequest;
+		return;
+	}
+
 	TrimString(szResponse);
 
 	CompleteHealthCheck(hPack, true, szResponse[0] != '\0' ? szResponse : "OK");
+	delete hRequest;
 }
