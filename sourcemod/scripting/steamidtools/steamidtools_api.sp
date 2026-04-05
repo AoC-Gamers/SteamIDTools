@@ -138,6 +138,44 @@ bool IsProviderReadyInternal(SteamIDToolsProvider provider)
 }
 
 /**
+ * Selects the provider that should execute a request when the caller does not
+ * want to pin one explicitly.
+ *
+ * Preference order:
+ * 1. A provider that is both loaded and backend-ready
+ * 2. A provider that is at least loaded, even if health is still unknown/offline
+ */
+SteamIDToolsProvider ResolveRequestProvider(SteamIDToolsProvider provider)
+{
+	if (provider != SteamIDToolsProvider_Auto)
+	{
+		return provider;
+	}
+
+	if (IsProviderReadyInternal(SteamIDToolsProvider_SteamWorks))
+	{
+		return SteamIDToolsProvider_SteamWorks;
+	}
+
+	if (IsProviderReadyInternal(SteamIDToolsProvider_System2))
+	{
+		return SteamIDToolsProvider_System2;
+	}
+
+	if (IsProviderLoaded(SteamIDToolsProvider_SteamWorks))
+	{
+		return SteamIDToolsProvider_SteamWorks;
+	}
+
+	if (IsProviderLoaded(SteamIDToolsProvider_System2))
+	{
+		return SteamIDToolsProvider_System2;
+	}
+
+	return SteamIDToolsProvider_Auto;
+}
+
+/**
  * Returns a readable provider name for logs and diagnostics.
  */
 void GetProviderName(SteamIDToolsProvider provider, char[] szBuffer, int iMaxLen)
@@ -333,7 +371,7 @@ void FireRequestFinishedForward(int iRequestId, SteamIDToolsProvider provider, b
 void CompleteRequest(Handle hPack, bool bSuccess, const char[] szResult)
 {
 	int iRequestId = 0;
-	SteamIDToolsProvider provider = SteamIDToolsProvider_Unknown;
+	SteamIDToolsProvider provider = SteamIDToolsProvider_Auto;
 	bool bBatch = false;
 	char szEndpoint[STEAMIDTOOLS_MAX_ENDPOINT_LENGTH];
 	char szInput[STEAMIDTOOLS_MAX_REQUEST_LENGTH];
@@ -440,6 +478,8 @@ void RequestAllBackendHealthChecks()
  */
 int StartOnlineRequest(SteamIDToolsProvider provider, const char[] szEndpoint, const char[] szInput, bool bBatch, const char[] szTag)
 {
+	provider = ResolveRequestProvider(provider);
+
 	if (!IsProviderLoaded(provider))
 	{
 		char szProviderName[16];

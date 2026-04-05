@@ -11,6 +11,9 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 ### Changed
 
 - El provider `SteamWorks` ahora usa `SteamWorks_GetHTTPResponseBodyString(...)` para leer respuestas textuales y JSON, en vez de tratar bodies HTTP crudos como strings manualmente.
+- `SteamIDTools_RequestConversion(...)` y `SteamIDTools_RequestBatch(...)` ahora aceptan `SteamIDToolsProvider_Auto` como selector oficial para delegar la eleccion del transporte HTTP al plugin principal.
+- La seleccion automatica del provider ahora queda centralizada en `steamidtools.sp`: primero intenta un provider `ready` y, si no existe uno sano todavia, cae a cualquier provider `available`.
+- La enum publica `SteamIDToolsProvider` reemplaza `SteamIDToolsProvider_Unknown` por `SteamIDToolsProvider_Auto` como valor `0`, para dejar explicito su uso como selector automatico.
 
 ### Fixed
 

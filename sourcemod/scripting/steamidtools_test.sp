@@ -83,7 +83,7 @@ bool TryParseProvider(const char[] szArg, SteamIDToolsProvider &provider)
 		return true;
 	}
 
-	provider = SteamIDToolsProvider_Unknown;
+	provider = SteamIDToolsProvider_Auto;
 	return false;
 }
 
