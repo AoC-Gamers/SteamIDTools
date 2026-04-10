@@ -1,7 +1,18 @@
 #include <sourcemod>
 #include <steamidtools>
+
+#if defined REQUIRE_EXTENSIONS
+	#define STEAMIDTOOLS_TEMP_REQUIRE_EXTENSIONS
+	#undef REQUIRE_EXTENSIONS
+#endif
+
 #include <steamworks>
 #include <system2>
+
+#if defined STEAMIDTOOLS_TEMP_REQUIRE_EXTENSIONS
+	#define REQUIRE_EXTENSIONS
+	#undef STEAMIDTOOLS_TEMP_REQUIRE_EXTENSIONS
+#endif
 
 #define MAX_API_BASE_URL_LENGTH 192
 #define MAX_API_URL_LENGTH 1024

@@ -19,6 +19,7 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 - El flujo HTTP del provider `SteamWorks` ahora cierra el `Handle` del request en todos los caminos de finalizacion del callback.
 - Las respuestas truncadas o fallidas al leer el body textual desde `SteamWorks` ahora se reportan como error explicito, en vez de continuar con contenido incompleto.
+- `steamidtools.smx` ya no exige que `SteamWorks` y `System2` esten cargadas al mismo tiempo para iniciar: ambas includes quedan como extensiones opcionales y el plugin usa en runtime solo los providers realmente disponibles.
 
 ## [2.4.0] - 2026-03-21
 
