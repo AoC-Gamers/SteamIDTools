@@ -47,6 +47,13 @@ jobs:
           echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
           echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
 
+      - name: Resolve artifact name
+        id: artifact
+        shell: bash
+        run: |
+          ref_name="${GITHUB_REF_NAME//\//-}"
+          echo "name=steamidtools-sourcemod-ci-${ref_name}" >> "$GITHUB_OUTPUT"
+
       - name: Compile SourceMod plugin
         run: bash ./scripts/ci-build-sourcemod.sh
 
@@ -54,7 +61,7 @@ jobs:
         if: github.event_name != 'push'
         uses: actions/upload-artifact@v6
         with:
-          name: steamidtools-sourcemod-ci-${{ github.ref_name }}
+          name: ${{ steps.artifact.outputs.name }}
           if-no-files-found: error
           retention-days: 14
           path: |
