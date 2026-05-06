@@ -12,6 +12,11 @@ on:
       - scripts/ci-build-sourcemod.sh
       - sourcemod/**
   workflow_dispatch:
+    inputs:
+      sourcemod_version:
+        description: SourceMod version to download
+        required: false
+        default: "1.12"
 
 concurrency:
   group: sourcemod-build-${{ github.ref }}
@@ -21,7 +26,8 @@ permissions:
   contents: read
 
 env:
-  SOURCEMOD_ARCHIVE_URL: https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git7223-linux.tar.gz
+  SOURCEMOD_VERSION: ${{ github.event.inputs.sourcemod_version || '1.12' }}
+  SOURCEMOD_ARCHIVE_URL: https://www.sourcemod.net/latest.php?os=linux&version=${{ github.event.inputs.sourcemod_version || '1.12' }}
 
 jobs:
   build:
@@ -36,12 +42,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes curl tar
 
+      - name: Show SourceMod version
+        run: |
+          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
+          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
+
       - name: Compile SourceMod plugin
         run: bash ./scripts/ci-build-sourcemod.sh
 
       - name: Upload SourceMod CI artifact
         if: github.event_name != 'push'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: steamidtools-sourcemod-ci-${{ github.ref_name }}
           if-no-files-found: error
