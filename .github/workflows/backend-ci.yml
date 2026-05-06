@@ -30,6 +30,7 @@ permissions:
 
 env:
   GO_VERSION: 1.26.1
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   backend:
@@ -96,7 +97,7 @@ jobs:
 
       - name: Upload backend artifacts
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-artifacts-${{ github.sha }}
           if-no-files-found: error

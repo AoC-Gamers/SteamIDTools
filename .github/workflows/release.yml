@@ -9,6 +9,11 @@ on:
       - backend/v*
       - sourcemod/v*
   workflow_dispatch:
+    inputs:
+      sourcemod_version:
+        description: SourceMod version to download
+        required: false
+        default: "1.12"
 
 concurrency:
   group: release-${{ github.ref }}
@@ -20,7 +25,9 @@ permissions:
 
 env:
   GO_VERSION: 1.26.1
-  SOURCEMOD_ARCHIVE_URL: https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git7223-linux.tar.gz
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  SOURCEMOD_VERSION: ${{ github.event.inputs.sourcemod_version || '1.12' }}
+  SOURCEMOD_ARCHIVE_URL: https://www.sourcemod.net/latest.php?os=linux&version=${{ github.event.inputs.sourcemod_version || '1.12' }}
 
 jobs:
   prepare-channel:
@@ -196,6 +203,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes curl tar python3
 
+      - name: Show SourceMod version
+        run: |
+          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
+          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
+
       - name: Verify GitHub CLI
         run: gh --version
 
@@ -271,6 +283,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes curl tar python3
+
+      - name: Show SourceMod version
+        if: needs.prepare-release.outputs.component == 'sourcemod'
+        run: |
+          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
+          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
 
       - name: Verify GitHub CLI
         run: gh --version
