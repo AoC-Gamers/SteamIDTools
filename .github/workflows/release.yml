@@ -201,7 +201,7 @@ jobs:
       - name: Install SourceMod build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes curl tar python3
+          sudo apt-get install --yes python3 make
 
       - name: Show SourceMod version
         run: |
@@ -282,7 +282,7 @@ jobs:
         if: needs.prepare-release.outputs.component == 'sourcemod'
         run: |
           sudo apt-get update
-          sudo apt-get install --yes curl tar python3
+          sudo apt-get install --yes python3 make
 
       - name: Show SourceMod version
         if: needs.prepare-release.outputs.component == 'sourcemod'

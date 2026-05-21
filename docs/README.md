@@ -9,6 +9,7 @@ Esta carpeta concentra la documentacion operativa y tecnica del proyecto.
 - [API HTTP](./api.md)
 - [Despliegue y Operacion](./deployment.md)
 - [Integracion SourceMod](./sourcemod.md)
+- [Sistema de Build](./build-system.md)
 - [Arquitectura](./architecture.md)
 
 ## Referencias Adicionales

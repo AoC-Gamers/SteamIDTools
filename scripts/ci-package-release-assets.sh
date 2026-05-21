@@ -36,28 +36,8 @@ if [[ "$RELEASE_COMPONENT" == "sourcemod" || "$RELEASE_COMPONENT" == "all" ]]; t
     exit 1
   fi
 
-  sourcemod_asset="steamidtools-sourcemod-${RELEASE_VERSION}.zip"
-
-  python3 - "$SOURCEMOD_ARTIFACT_DIR" "$RELEASE_DIR/$sourcemod_asset" <<'PY'
-import os
-import sys
-import zipfile
-
-src_dir, out_file = sys.argv[1], sys.argv[2]
-
-with zipfile.ZipFile(out_file, "w", zipfile.ZIP_DEFLATED) as zf:
-    for root, dirs, files in os.walk(src_dir):
-        dirs.sort()
-        files.sort()
-        rel_root = os.path.relpath(root, src_dir)
-        if rel_root != "." and not dirs and not files:
-            zf.writestr(rel_root.rstrip("/") + "/", "")
-        for name in files:
-            path = os.path.join(root, name)
-            arcname = os.path.relpath(path, src_dir)
-            zf.write(path, arcname)
-PY
-  artifacts+=("$sourcemod_asset")
+  make release-smx PYTHON=python3 SMX_RELEASE_BASENAME="steamidtools-sourcemod-${RELEASE_VERSION}"
+  artifacts+=("steamidtools-sourcemod-${RELEASE_VERSION}.zip")
 fi
 
 if [[ ${#artifacts[@]} -eq 0 ]]; then
