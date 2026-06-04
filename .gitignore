@@ -137,6 +137,8 @@ logs/
 
 # SourceMod temporary files
 *.tmp
+/.build/
+/deps/
 
 # IDE files
 .vscode/

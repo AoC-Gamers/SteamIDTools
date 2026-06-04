@@ -1,0 +1,28 @@
+{
+  "build": {
+    "plugins": {
+      "custom": [
+        "steamidtools"
+      ]
+    }
+  },
+  "artifact": {
+    "sourcemod": {
+      "scripting": {
+        "files": [
+          "steamidtools.sp"
+        ],
+        "dirs": [
+          "steamidtools"
+        ],
+        "include": {
+          "files": [
+            "steamidtools.inc",
+            "steamidtools_helpers.inc",
+            "steamidtools_stock.inc"
+          ]
+        }
+      }
+    }
+  }
+}

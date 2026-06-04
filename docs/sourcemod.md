@@ -16,6 +16,19 @@ El proyecto incluye dos cosas para SourceMod:
 - `sourcemod/scripting/steamidtools/steamidtools_steamworks.sp`
 - `sourcemod/scripting/steamidtools/steamidtools_system2.sp`
 
+## Build local
+
+El carril SourceMod del repo usa:
+
+- `make deps-smx`
+- `make build-smx`
+- `make package-smx`
+- `make release-smx`
+
+El zip final queda en:
+
+- `dist/release/`
+
 ## Conversiones offline
 
 `steamidtools_stock.inc` permite conversiones sin backend HTTP.

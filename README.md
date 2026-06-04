@@ -99,3 +99,12 @@ make gosec
 make build
 make clean
 ```
+
+SourceMod:
+
+```bash
+make deps-smx
+make build-smx
+make package-smx
+make release-smx
+```
