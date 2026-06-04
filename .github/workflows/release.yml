@@ -208,6 +208,11 @@ jobs:
           echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
           echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
 
+      - name: Show SourceMod version
+        run: |
+          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
+          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
+
       - name: Verify GitHub CLI
         run: gh --version
 
@@ -283,6 +288,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes python3 make
+
+      - name: Show SourceMod version
+        if: needs.prepare-release.outputs.component == 'sourcemod'
+        run: |
+          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
+          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
 
       - name: Show SourceMod version
         if: needs.prepare-release.outputs.component == 'sourcemod'
