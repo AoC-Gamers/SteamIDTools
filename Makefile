@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help deps go-tools fmt vet lint gosec nancy swagger test build deps-smx build-smx package-smx release-smx clean clean-all
+.PHONY: help deps go-tools fmt vet lint gosec nancy swagger test build deps-smx build-smx test-offline package-smx release-smx clean clean-all
 
 REPORTS_DIR := reports
 SCRIPTS_DIR := scripts
@@ -68,6 +68,9 @@ deps-smx: ## Descargar dependencias de SourceMod para compilar el plugin
 
 build-smx: ## Compilar plugin SourceMod
 	$(PYTHON) ./scripts/build-local.py --root . --spcomp "$(SPCOMP)" --output-root "$(SMX_BUILD_DIR)" --compile-log deps/build-smx-compile.log
+
+test-offline: ## Probar stocks reales en SourcePawn VM (requiere preparacion; Linux x86_64)
+	$(PYTHON) ./scripts/test-sourcepawn-offline.py
 
 package-smx: ## Preparar arbol SourceMod para artifact/release
 	$(PYTHON) ./scripts/stage-artifact.py . "$(SMX_BUILD_DIR)" "deps/build-smx-compile.log" "$(SMX_PACKAGE_DIR)"

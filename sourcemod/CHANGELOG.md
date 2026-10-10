@@ -6,10 +6,13 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 ### Added
 
-- None.
+- Conversion offline `SteamID64 -> AccountID`, parsing uint32 estricto y formato decimal sin int64 en `steamidtools_stock.inc`.
+- Suite `make test-offline` que ejecuta el stock real en SourcePawn JIT e interprete y lo contrasta con un oraculo independiente.
+- Modo `--server-plugin` del harness para repetir el corpus con natives reales de SourceMod mediante `sm_steamidtools_stock_test`, con lotes entre frames y log dedicado.
 
 ### Changed
 
+- La version publica SourceMod pasa a `2.5.0`; las conversiones offline admiten AccountIDs hasta `4294967295`, conservando sus bits uint32 en celdas SourcePawn.
 - El provider `SteamWorks` ahora usa `SteamWorks_GetHTTPResponseBodyString(...)` para leer respuestas textuales y JSON, en vez de tratar bodies HTTP crudos como strings manualmente.
 - `SteamIDTools_RequestConversion(...)` y `SteamIDTools_RequestBatch(...)` ahora aceptan `SteamIDToolsProvider_Auto` como selector oficial para delegar la eleccion del transporte HTTP al plugin principal.
 - La seleccion automatica del provider ahora queda centralizada en `steamidtools.sp`: primero intenta un provider `ready` y, si no existe uno sano todavia, cae a cualquier provider `available`.
@@ -17,6 +20,9 @@ Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
 ### Fixed
 
+- SteamID3 acepta AccountIDs de un digito y rechaza valores nulos, overflow y componentes malformados; SteamID2 valida universo, paridad y rango de Z.
+- La busqueda por AccountID y la deteccion de formato admiten valores con el bit alto activado.
+- Las conversiones a SteamID2, SteamID3 y SteamID64 rechazan buffers insuficientes sin devolver resultados truncados como exitosos.
 - El flujo HTTP del provider `SteamWorks` ahora cierra el `Handle` del request en todos los caminos de finalizacion del callback.
 - Las respuestas truncadas o fallidas al leer el body textual desde `SteamWorks` ahora se reportan como error explicito, en vez de continuar con contenido incompleto.
 - `steamidtools.smx` ya no exige que `SteamWorks` y `System2` esten cargadas al mismo tiempo para iniciar: ambas includes quedan como extensiones opcionales y el plugin usa en runtime solo los providers realmente disponibles.
