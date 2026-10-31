@@ -2,24 +2,29 @@
 
 ## Instalacion y responsabilidades
 
-Copiar `steamidtools.inc`, `steamidtools_stock.inc` y `steamidtools_helpers.inc`
-desde `addons/sourcemod/scripting/include/` al proyecto consumidor y recompilarlo.
-`steamidtools.inc` importa el stock; helpers adapta argumentos de comandos.
-Los stocks se compilan dentro de cada consumidor, sin plugin residente,
-configuracion de red ni extensiones de conversion.
+Copiar `steamidtools.inc` y el directorio `steamidtools/` desde
+`addons/sourcemod/scripting/include/` al proyecto consumidor y recompilarlo.
 
-La API publica vive en `steamidtools_stock.inc`. Las funciones `TryParse`
-distinguen exito y valor; cero es una identidad invalida. Validar un formato
-no acredita la existencia de una cuenta ni concede permisos. Cada consumidor
-conserva sus controles de autorizacion, persistencia y consultas de perfil.
+- `#include <steamidtools>` declara tipos, constantes, formatos, conversiones y URLs.
+- `#include <steamidtools/clients>` agrega obtener y buscar clientes conectados.
+- `#include <steamidtools/commands>` agrega argumentos normalizados y reconstruccion
+  de identidades. No incluye el modulo de clientes.
 
-El ZIP distribuye los includes y la documentacion. El harness de regresion es optativo y queda fuera del paquete. La entrega de plugins consumidores
+Los dos modulos importan el principal. Cada stock se compila en el consumidor;
+no hay biblioteca dinamica, transporte ni SMX residente. Los nombres y cuerpos
+productivos se conservan, incluidos uint32, buffers, SteamID64 como cadena y
+retornos de busqueda: cero para identidad invalida y -1 para cuenta no conectada.
+Validar formato no acredita la existencia de una cuenta ni concede permisos.
+Cada consumidor conserva sus comprobaciones de autorizacion y persistencia.
+
+El ZIP distribuye los includes y la documentacion. El harness de regresion
+es optativo y queda fuera del paquete. La entrega de plugins consumidores
 y la retirada de binarios HTTP antiguos necesitan su propio alcance operativo;
 ver [migracion](migration.md).
 
 ## Conversiones offline
 
-`steamidtools_stock.inc` permite conversiones sin backend HTTP.
+`steamidtools.inc` permite conversiones sin backend HTTP.
 
 Casos soportados:
 
@@ -51,7 +56,7 @@ Si necesitas otro valor en compile-time:
 
 ```sourcepawn
 #define STEAMIDTOOLS_SID2_UNIVERSE 0
-#include <steamidtools_stock>
+#include <steamidtools>
 ```
 
 ### Prueba de regresion offline
@@ -84,7 +89,7 @@ make test-offline
 Para contrastar otra copia del include con el mismo corpus:
 
 ```bash
-python3 scripts/test-sourcepawn-offline.py --stock-include ../otra-copia/steamidtools_stock.inc
+python3 scripts/test-sourcepawn-offline.py --stock-include ../otra-copia/steamidtools.inc
 ```
 
 La salida identifica el SHA256 del include, los casos de borde y los fallos por

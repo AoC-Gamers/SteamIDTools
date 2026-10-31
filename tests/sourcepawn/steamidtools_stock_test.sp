@@ -1,7 +1,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <steamidtools_stock>
+#include <steamidtools>
 #include <stock_cases>
 
 int g_Checks;

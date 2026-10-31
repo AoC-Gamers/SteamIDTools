@@ -6,8 +6,8 @@
           "include": {
             "files": [
               "steamidtools.inc",
-              "steamidtools_helpers.inc",
-              "steamidtools_stock.inc"
+              "steamidtools/clients.inc",
+              "steamidtools/commands.inc"
             ]
           }
         }

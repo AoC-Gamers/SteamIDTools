@@ -91,7 +91,7 @@ def main():
     parser.add_argument("--server-plugin", action="store_true",
                         help="Build a server-command harness using real SourceMod natives; do not run the VM")
     parser.add_argument("--stock-include", type=Path,
-                        default=ROOT / "addons/sourcemod/scripting/include/steamidtools_stock.inc")
+                        default=ROOT / "addons/sourcemod/scripting/include/steamidtools.inc")
     options = parser.parse_args()
     if options.prepare_vm:
         prepare_vm()

@@ -1,8 +1,25 @@
-# Migracion de 2.x a 3.x
+# Migracion a SteamIDTools 4.x
 
-3.0.0 retira el backend Go y la API online. Los stocks mantienen sus nombres y
-contratos. `steamidtools.inc` ahora importa solo `steamidtools_stock.inc` y no
-crea una dependencia de `steamidtools.smx`.
+## Desde el toolkit offline 3.x
+
+4.0.0 reorganiza los includes publicos sin cambiar nombres de funciones ni
+su comportamiento. Los antiguos `steamidtools_stock.inc` y
+`steamidtools_helpers.inc` se retiran, sin wrappers de compatibilidad.
+
+- Usar `<steamidtools>` para tipos y conversiones puras.
+- Agregar `<steamidtools/clients>` al usar `GetClientAccountID`,
+  `FindClientByAccountID`, `FindClientBySteamID2`, `FindClientBySteamID3` o
+  `IsValidClientIndex`.
+- Sustituir `<steamidtools_helpers>` por `<steamidtools/commands>`.
+
+Copiar el include principal y el directorio de modulos juntos; retirar las
+copias anteriores y recompilar los consumidores. Las conversiones conservan
+los patrones uint32, strings SteamID64 y las condiciones de error/buffer.
+No reintroducir dependencias de un plugin cargado para usar estos includes.
+
+## Desde la API online 2.x
+
+La API HTTP y el backend Go fueron retirados en 3.0.0 y siguen ausentes.
 
 Sustituir `SteamIDTools_RequestConversion` por los conversores locales:
 `SteamIDTools_SteamID64ToAccountID`, `SteamIDTools_AccountIDToSteamID64`,
@@ -24,4 +41,4 @@ hace. No desinstalar SteamWorks ni System2 si otros plugins los usan.
 
 BanSystem-Legacy conserva llamadas online: usar su version de includes y el
 SteamIDTools anterior de `codex/archive-http-backend` hasta una migracion propia.
-No reemplazar sus includes por 3.x. No se eliminan imagenes ni releases remotos.
+No reemplazar sus includes por 4.x. No se eliminan imagenes ni releases remotos.

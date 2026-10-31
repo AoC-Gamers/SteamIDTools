@@ -2,7 +2,7 @@
 
 Las fuentes publicas viven en `addons/sourcemod/scripting/include/` y el
 changelog en `CHANGELOG.md`. `plugin-package-map.json` declara exclusivamente
-los tres includes distribuidos; no existe una lista de plugins de produccion.
+el principal y los dos modulos distribuidos; no existe una lista de plugins de produccion.
 
 `make build-smx` prepara esos includes en `.build/smx/addons/sourcemod/scripting/include/`
 y escribe `deps/build-toolkit.log`. Este target conserva el nombre homologado
@@ -36,3 +36,8 @@ se ejecuta automaticamente. Ninguna de estas validaciones opera SRCDS.
 Usar `tmp/` dentro del repositorio para logs, respaldos y fixtures temporales.
 Esta carpeta esta ignorada por Git y no se distribuye en el ZIP. `make clean`
 limpia `.build/` y `dist/`; conserva `tmp/`, las dependencias y la VM.
+
+`make check-package` ejecuta tambien los modulos productivos de clientes y
+comandos en JIT e interprete, con entradas de engine/consola modeladas. Cubre
+uint32, no conectado/invalido, normalizacion y reconstruccion de argumentos;
+no acredita comportamiento real de clientes o consola de SRCDS.

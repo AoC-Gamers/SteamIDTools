@@ -22,7 +22,7 @@ def main() -> int:
     if not names or len(set(names)) != len(names):
         raise ValueError("The toolkit requires a nonempty, unique include list")
     for name in names:
-        if Path(name).name != name or not name.endswith(".inc"):
+        if Path(name).is_absolute() or ".." in Path(name).parts or not name.endswith(".inc"):
             raise ValueError(f"Invalid include name: {name}")
         if not (source / name).is_file():
             raise FileNotFoundError(source / name)
@@ -33,6 +33,7 @@ def main() -> int:
     target = output / "addons/sourcemod/scripting/include"
     target.mkdir(parents=True)
     for name in names:
+        (target / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source / name, target / name)
     log.parent.mkdir(parents=True, exist_ok=True)
     log.write_text("Offline includes prepared (no production SMX).\n" + "\n".join(names) + "\n")

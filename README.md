@@ -1,13 +1,13 @@
 # SteamIDTools
 
-Toolkit SourcePawn 3.0.0 para convertir AccountID, SteamID2, SteamID3 y
+Toolkit SourcePawn 4.0.0 para convertir AccountID, SteamID2, SteamID3 y
 SteamID64 localmente. No requiere backend, conexion HTTP, System2, SteamWorks
 ni un plugin residente.
 
 ## Uso
 
-Copiar los tres includes de `addons/sourcemod/scripting/include/` al directorio de
-includes del proyecto consumidor y recompilarlo:
+Copiar `steamidtools.inc` y el directorio `steamidtools/` desde
+`addons/sourcemod/scripting/include/` al proyecto consumidor y recompilarlo:
 
 ```sourcepawn
 #include <steamidtools>
@@ -40,7 +40,9 @@ include real con JIT e interprete y un oraculo Python independiente.
 
 ## Estructura
 
-- `addons/sourcemod/scripting/include/`: los tres includes publicos.
+- `addons/sourcemod/scripting/include/steamidtools.inc`: tipos y conversiones puras.
+- `addons/sourcemod/scripting/include/steamidtools/clients.inc`: consultas de clientes.
+- `addons/sourcemod/scripting/include/steamidtools/commands.inc`: argumentos de comandos.
 - `tests/`: corpus SourcePawn, adaptadores VM y pruebas del paquete.
 - `scripts/`: toolchain, compilacion, validacion y empaquetado.
 - `docs/`: referencia, contratos, build y migracion.
@@ -52,11 +54,11 @@ include real con JIT e interprete y un oraculo Python independiente.
 ## Documentacion y versiones
 
 - [Indice](docs/index.md)
-- [Migracion desde 2.x](docs/migration.md)
+- [Migracion desde 2.x/3.x](docs/migration.md)
 - [Conversiones y pruebas](docs/sourcemod.md)
 - [Referencia SteamID](docs/steamid-reference.md)
 - [Changelog](CHANGELOG.md)
 
 Versionado SemVer del toolkit. Tags `sourcemod/vX.Y.Z`; canales
 `channel/develop` y `channel/latest`. El backend anterior queda conservado en
-la rama local `codex/archive-http-backend`; no se publica como parte de 3.x.
+la rama local `codex/archive-http-backend`; no se publica como parte de 4.x.

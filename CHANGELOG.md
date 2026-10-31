@@ -1,5 +1,12 @@
 # Changelog SourceMod
 
+## 4.0.0
+
+- API principal con conversiones puras en `steamidtools.inc`.
+- Adaptadores separados en `steamidtools/clients.inc` y `steamidtools/commands.inc`.
+- Retirada incompatible de los includes stock/helpers; funciones y retornos conservados.
+
+
 ## 3.0.0
 
 - Toolkit offline sin backend Go, providers HTTP, health checks ni SMX residente.

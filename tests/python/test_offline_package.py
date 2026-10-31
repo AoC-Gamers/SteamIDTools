@@ -72,12 +72,12 @@ public int main() {
         artifact = ROOT/'dist/sourcemod/artifact'
         subprocess.run(['bash', str(ROOT/'scripts/ci-validate-artifact.sh')], cwd=ROOT, check=True, capture_output=True)
         files = {p.relative_to(artifact).as_posix() for p in (artifact/'addons').rglob('*') if p.is_file()}
-        self.assertEqual(files, {'addons/sourcemod/scripting/include/'+name for name in ('steamidtools.inc', 'steamidtools_stock.inc', 'steamidtools_helpers.inc')})
+        self.assertEqual(files, {'addons/sourcemod/scripting/include/'+name for name in ('steamidtools.inc', 'steamidtools/clients.inc', 'steamidtools/commands.inc')})
 
     def test_version_resolver(self):
         script = ROOT/'scripts/ci-resolve-release.sh'
-        self.assertEqual(subprocess.run(['bash', str(script), 'sourcemod/v3.0.0'], capture_output=True).returncode, 0)
-        for tag in ('backend/v2.0.0', 'sourcemod/v2.5.0', 'invalid'):
+        self.assertEqual(subprocess.run(['bash', str(script), 'sourcemod/v4.0.0'], capture_output=True).returncode, 0)
+        for tag in ('backend/v2.0.0', 'sourcemod/v3.0.0', 'invalid'):
             self.assertNotEqual(subprocess.run(['bash', str(script), tag], capture_output=True).returncode, 0)
 
     def test_release_zip_and_document_links(self):
@@ -87,7 +87,7 @@ public int main() {
         if archive_path.exists():
             with zipfile.ZipFile(archive_path) as archive:
                 files = {n for n in archive.namelist() if n.startswith('addons/') and not n.endswith('/')}
-                self.assertEqual(files, {'addons/sourcemod/scripting/include/'+name for name in ('steamidtools.inc', 'steamidtools_stock.inc', 'steamidtools_helpers.inc')})
+                self.assertEqual(files, {'addons/sourcemod/scripting/include/'+name for name in ('steamidtools.inc', 'steamidtools/clients.inc', 'steamidtools/commands.inc')})
         for path in artifact.rglob('*.md'):
             for target in re.findall(r'\]\(([^)]+)\)', path.read_text()):
                 if '://' in target or target.startswith('#'):
