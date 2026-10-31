@@ -4,6 +4,7 @@ Esta carpeta concentra la documentacion operativa y tecnica del proyecto.
 
 ## Indice
 
+- [Plan de transicion a conversiones offline](../Plan.md)
 - [Referencia de SteamID](./steamid-reference.md)
 - [Inicio Rapido](./getting-started.md)
 - [API HTTP](./api.md)
