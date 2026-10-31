@@ -1,3 +1,12 @@
+# Changelog SourceMod
+
+## 3.0.0
+
+- Toolkit offline sin backend Go, providers HTTP, health checks ni SMX residente.
+- Fachada `steamidtools.inc` sin dependencia de biblioteca dinamica.
+- Stocks uint32 conservados, ejemplo offline y paquete de includes solamente.
+- Migracion incompatible de consumidores online; ver `docs/migration.md`.
+
 # SourceMod Changelog
 
 Este archivo sigue el formato de Keep a Changelog y usa SemVer.

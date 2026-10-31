@@ -26,8 +26,8 @@ def run_spcomp(spcomp: Path, source_file: Path, include_dirs: list[Path], output
         cmd.append(f"-i{include_dir}")
     cmd.append(f"-o{output_file}")
 
-    rel_output = output_file.as_posix().split("/addons/", 1)[-1]
-    print(f"Compiling {source_file.name} -> addons/{rel_output}", flush=True)
+    rel_output = output_file.as_posix()
+    print(f"Compiling {source_file.name} -> {rel_output}", flush=True)
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
     if result.stdout:
@@ -175,7 +175,9 @@ def main() -> int:
     artifact_root = output_root / "addons" / "sourcemod"
     plugins_root = artifact_root / "plugins"
     remove_tree_if_exists(output_root)
-    plugins_root.mkdir(parents=True, exist_ok=True)
+    artifact_root.mkdir(parents=True, exist_ok=True)
+    if build_buckets:
+        plugins_root.mkdir(parents=True, exist_ok=True)
     for bucket in build_buckets:
         if bucket != "root":
             (plugins_root / bucket).mkdir(parents=True, exist_ok=True)
@@ -193,6 +195,10 @@ def main() -> int:
             continue
         output_file = (plugins_root if bucket == "root" else plugins_root / bucket) / f"{source_file.stem}.smx"
         run_spcomp(spcomp, source_file, include_dirs, output_file, compile_log)
+
+    example_output = root / ".build" / "examples" / "steamidtools_test.smx"
+    example_output.parent.mkdir(parents=True, exist_ok=True)
+    run_spcomp(spcomp, scripting_dir / "steamidtools_test.sp", include_dirs, example_output, compile_log)
 
     copy_manifest_tree(artifact_manifest, source_root, artifact_root)
 

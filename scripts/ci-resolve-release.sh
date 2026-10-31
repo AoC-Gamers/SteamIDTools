@@ -11,20 +11,14 @@ if [[ -z "$TAG_NAME" ]]; then
 fi
 
 case "$TAG_NAME" in
-  backend/v*)
-    component="backend"
-    version="${TAG_NAME#backend/v}"
-    expected_version="$(sed -n 's/^const Version = "\(.*\)"$/\1/p' "$ROOT_DIR/go/internal/app/version.go" | head -n 1)"
-    release_name="Backend v${version}"
-    ;;
   sourcemod/v*)
     component="sourcemod"
     version="${TAG_NAME#sourcemod/v}"
-    expected_version="$(sed -n 's/^[[:space:]]*version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$ROOT_DIR/sourcemod/scripting/steamidtools.sp" | head -n 1)"
+    expected_version="$(sed -n 's/^#define STEAMIDTOOLS_VERSION "\(.*\)"$/\1/p' "$ROOT_DIR/sourcemod/scripting/include/steamidtools_stock.inc")"
     release_name="SourceMod v${version}"
     ;;
   *)
-    echo "Unsupported release tag '$TAG_NAME'. Use backend/vX.Y.Z or sourcemod/vX.Y.Z." >&2
+    echo "Unsupported release tag '$TAG_NAME'. Use sourcemod/vX.Y.Z." >&2
     exit 1
     ;;
 esac

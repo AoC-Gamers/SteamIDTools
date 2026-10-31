@@ -1,70 +1,17 @@
-# Sistema de Build
+# Build y empaquetado
 
-## Objetivo
+`make deps-smx` prepara SourceMod Linux. `make build-smx` compila el ejemplo en
+`.build/examples/`, registra el compilador en `deps/build-smx-compile.log` y
+materializa solo los tres includes en `.build/smx/addons/sourcemod/scripting/include/`.
+`plugin-package-map.json` declara un conjunto vacio de plugins de produccion.
 
-Este repositorio es mixto:
+`make package-smx` prepara `.build/package-smx`; `make release-smx` genera el ZIP
+en `dist/release/`. `scripts/ci-validate-artifact.sh` valida el arbol preparado
+por `scripts/stage-artifact.py`; `make check-package` comprueba aislamiento y
+contratos del artifact. El paquete excluye plugins, providers y pruebas.
 
-- backend Go
-- componente SourceMod
-
-El flujo homologado se aplica solo al carril SourceMod, sin interferir con las tareas del backend.
-
-## Carril SourceMod
-
-Archivos principales:
-
-- `plugin-package-map.json`
-- `scripts/fetch-sourcemod.py`
-- `scripts/build-local.py`
-- `scripts/stage-artifact.py`
-- `scripts/package-release.py`
-- `scripts/ci-build-sourcemod.sh`
-- `scripts/ci-validate-artifact.sh`
-- `.github/workflows/sourcemod-build.yml`
-
-Targets:
-
-- `make deps-smx`
-- `make build-smx`
-- `make package-smx`
-- `make release-smx`
-
-## Manifiesto
-
-`plugin-package-map.json` define:
-
-- `build.plugins`
-- `artifact.sourcemod`
-
-En este repo:
-
-- se compila solo `steamidtools.sp`
-- el binario se publica en `addons/sourcemod/plugins/custom/`
-- el artifact incluye:
-  - `scripting/steamidtools.sp`
-  - `scripting/steamidtools/`
-  - includes publicas:
-    - `steamidtools.inc`
-    - `steamidtools_helpers.inc`
-    - `steamidtools_stock.inc`
-
-Se excluyen explicitamente del bundle publico:
-
-- `steamidtools_test.sp`
-- `steamworks.inc`
-- `system2.inc`
-- `include/system2/`
-
-## CI
-
-El workflow SourceMod usa:
-
-- `deps-smx`
-- `build-smx`
-- `release-smx`
-
-El workflow de releases del repo sigue siendo mixto, pero el asset SourceMod ya usa el mismo flujo homologado antes de empaquetarse.
-
-## WSL
-
-Si el repo vive bajo `/mnt/`, `build-local.py` usa automaticamente un workspace temporal Linux para evitar la penalizacion de I/O de WSL sobre discos montados.
+`make test-offline` ejecuta los stocks productivos en JIT e interprete.
+Preparar una vez la VM con
+`python3 scripts/test-sourcepawn-offline.py --prepare-vm`.
+No se compila ni publica un backend. Los workflows de SourceMod y release
+validan el toolkit; publicar sigue requiriendo autorizacion del usuario.

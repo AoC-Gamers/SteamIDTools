@@ -183,8 +183,3 @@ pid/
 tmp/
 temp/
 .tmp/
-
-# Ignorar binario compilado de Go
-/go/bin/
-/go/steamid-service
-/go/steamid-service.exe

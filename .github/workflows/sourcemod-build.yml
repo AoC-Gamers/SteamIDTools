@@ -12,6 +12,11 @@ on:
       - scripts/package-release.py
       - plugin-package-map.json
       - sourcemod/**
+      - tests/**
+      - scripts/test-sourcepawn-offline.py
+      - Makefile
+      - docs/**
+      - README.md
   pull_request:
     paths:
       - .github/workflows/sourcemod-build.yml
@@ -23,6 +28,11 @@ on:
       - scripts/package-release.py
       - plugin-package-map.json
       - sourcemod/**
+      - tests/**
+      - scripts/test-sourcepawn-offline.py
+      - Makefile
+      - docs/**
+      - README.md
   workflow_dispatch:
     inputs:
       sourcemod_version:
@@ -101,6 +111,14 @@ jobs:
 
       - name: Build SMX
         run: make build-smx PYTHON=python3 SPCOMP="deps/sourcemod-linux/addons/sourcemod/scripting/spcomp"
+
+      - name: Test offline toolkit and facade
+        run: |
+          python3 scripts/test-sourcepawn-offline.py --prepare-vm
+          make test-offline
+          make package-smx
+          python3 scripts/stage-artifact.py . .build/package-smx deps/build-smx-compile.log
+          make check-package
 
       - name: Upload SMX build tree
         uses: actions/upload-artifact@v6

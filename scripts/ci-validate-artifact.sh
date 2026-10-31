@@ -72,6 +72,9 @@ for rel_path in ("README.md", "plugin-package-map.json", "docs", "sourcemod/CHAN
         raise SystemExit(f"Missing packaged project asset: {artifact_path}")
 
 for forbidden in (
+    os.path.join(artifact_root, "plugins"),
+    os.path.join(artifact_root, "scripting", "steamidtools.sp"),
+    os.path.join(artifact_root, "scripting", "steamidtools"),
     os.path.join(artifact_root, "scripting", "steamidtools_test.sp"),
     os.path.join(artifact_root, "scripting", "include", "steamworks.inc"),
     os.path.join(artifact_root, "scripting", "include", "system2.inc"),

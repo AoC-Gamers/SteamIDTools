@@ -1,350 +1,70 @@
 name: Release
-
 on:
   push:
-    branches:
-      - main
-      - develop
-    tags:
-      - backend/v*
-      - sourcemod/v*
+    branches: [main, develop]
+    tags: ['sourcemod/v*']
   workflow_dispatch:
-    inputs:
-      sourcemod_version:
-        description: SourceMod version to download
-        required: false
-        default: "1.12"
-
+permissions:
+  contents: read
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
-
-permissions:
-  contents: read
-  packages: write
-
-env:
-  GO_VERSION: 1.26.1
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-  SOURCEMOD_VERSION: ${{ github.event.inputs.sourcemod_version || '1.12' }}
-  SOURCEMOD_ARCHIVE_URL: https://www.sourcemod.net/latest.php?os=linux&version=${{ github.event.inputs.sourcemod_version || '1.12' }}
-
 jobs:
-  prepare-channel:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+  package:
     runs-on: ubuntu-latest
-    outputs:
-      channel: ${{ steps.channel.outputs.channel }}
-      tag: ${{ steps.channel.outputs.tag }}
-      release_name: ${{ steps.channel.outputs.release_name }}
-      prerelease: ${{ steps.channel.outputs.prerelease }}
-      image_tag: ${{ steps.channel.outputs.image_tag }}
-
+    permissions:
+      contents: write
     steps:
-      - name: Resolve release channel
-        id: channel
-        shell: bash
-        run: |
-          case "${GITHUB_REF_NAME}" in
-            main)
-              echo "channel=latest" >> "$GITHUB_OUTPUT"
-              echo "tag=channel/latest" >> "$GITHUB_OUTPUT"
-              echo "release_name=Latest" >> "$GITHUB_OUTPUT"
-              echo "prerelease=false" >> "$GITHUB_OUTPUT"
-              echo "image_tag=latest" >> "$GITHUB_OUTPUT"
-              ;;
-            develop)
-              echo "channel=develop" >> "$GITHUB_OUTPUT"
-              echo "tag=channel/develop" >> "$GITHUB_OUTPUT"
-              echo "release_name=Develop" >> "$GITHUB_OUTPUT"
-              echo "prerelease=true" >> "$GITHUB_OUTPUT"
-              echo "image_tag=develop" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "Unsupported channel branch '${GITHUB_REF_NAME}'." >&2
-              exit 1
-              ;;
-          esac
-
-  prepare-release:
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    outputs:
-      component: ${{ steps.release.outputs.component }}
-      version: ${{ steps.release.outputs.version }}
-      release_name: ${{ steps.release.outputs.release_name }}
-      prerelease: ${{ steps.release.outputs.prerelease }}
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Resolve release tag
+      - name: Resolve release
         id: release
-        run: bash ./scripts/ci-resolve-release.sh "${GITHUB_REF_NAME}"
-
-      - name: Ensure tag points to main history
         shell: bash
         run: |
-          git fetch origin main --depth=1
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"; then
-            echo "Tag ${GITHUB_REF_NAME} does not point to a commit on main." >&2
-            exit 1
-          fi
-
-  publish-channel-image:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    needs: prepare-channel
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Compute image name
-        id: image
-        shell: bash
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/steamidtools" >> "$GITHUB_OUTPUT"
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and publish latest image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.image.outputs.name }}:${{ needs.prepare-channel.outputs.image_tag }}
-          labels: |
-            org.opencontainers.image.title=steamidtools
-            org.opencontainers.image.description=SteamID Conversion Service for Game Servers (Go)
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  publish-versioned-image:
-    if: startsWith(github.ref, 'refs/tags/backend/v')
-    needs: prepare-release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Compute image name
-        id: image
-        shell: bash
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/steamidtools" >> "$GITHUB_OUTPUT"
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and publish versioned image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.image.outputs.name }}:${{ needs.prepare-release.outputs.version }}
-          labels: |
-            org.opencontainers.image.title=steamidtools
-            org.opencontainers.image.description=SteamID Conversion Service for Game Servers (Go)
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ needs.prepare-release.outputs.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  create-channel-release:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    needs:
-      - prepare-channel
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-          cache-dependency-path: go/go.sum
-
-      - name: Install SourceMod build dependencies
+          case "$GITHUB_REF" in
+            refs/tags/sourcemod/v*)
+              bash scripts/ci-resolve-release.sh "$GITHUB_REF_NAME"
+              git fetch origin main
+              git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+              echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+              echo "version=${GITHUB_REF_NAME#sourcemod/v}" >> "$GITHUB_OUTPUT"
+              ;;
+            refs/heads/main)
+              echo "tag=channel/latest" >> "$GITHUB_OUTPUT"
+              echo "version=latest" >> "$GITHUB_OUTPUT"
+              echo "prerelease=false" >> "$GITHUB_OUTPUT"
+              ;;
+            refs/heads/develop)
+              echo "tag=channel/develop" >> "$GITHUB_OUTPUT"
+              echo "version=develop" >> "$GITHUB_OUTPUT"
+              echo "prerelease=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *) exit 1 ;;
+          esac
+      - name: Build and validate offline toolkit
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes python3 make
-
-      - name: Show SourceMod version
-        run: |
-          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
-          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
-
-      - name: Show SourceMod version
-        run: |
-          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
-          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
-
-      - name: Verify GitHub CLI
-        run: gh --version
-
-      - name: Build backend binary
-        run: make build
-
-      - name: Build SourceMod artifact
-        run: bash ./scripts/ci-build-sourcemod.sh
-
-      - name: Package release assets
-        env:
-          RELEASE_COMPONENT: all
-          RELEASE_VERSION: ${{ needs.prepare-channel.outputs.channel }}
-        run: bash ./scripts/ci-package-release-assets.sh
-
-      - name: Move channel tag
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -f "${{ needs.prepare-channel.outputs.tag }}" "$GITHUB_SHA"
-          git push origin "refs/tags/${{ needs.prepare-channel.outputs.tag }}" --force
-
-      - name: Publish channel release
+          make deps-smx build-smx
+          python3 scripts/test-sourcepawn-offline.py --prepare-vm
+          make test-offline
+          make package-smx
+          python3 scripts/stage-artifact.py . .build/package-smx deps/build-smx-compile.log
+          bash scripts/ci-validate-artifact.sh
+          make check-package
+          make release-smx SMX_RELEASE_BASENAME=steamidtools-sourcemod-${{ steps.release.outputs.version }}
+      - name: Publish SourceMod asset
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          PRERELEASE: ${{ steps.release.outputs.prerelease }}
         shell: bash
         run: |
-          tag="${{ needs.prepare-channel.outputs.tag }}"
-          title="${{ needs.prepare-channel.outputs.release_name }}"
-          backend_asset="dist/release/steamid-service-linux-amd64-${{ needs.prepare-channel.outputs.channel }}.tar.gz"
-          sourcemod_asset="dist/release/steamidtools-sourcemod-${{ needs.prepare-channel.outputs.channel }}.zip"
-
-          if gh release view "$tag" >/dev/null 2>&1; then
-            if [[ "${{ needs.prepare-channel.outputs.prerelease }}" == "true" ]]; then
-              gh release edit "$tag" --title "$title" --prerelease
-            else
-              gh release edit "$tag" --title "$title" --latest
-            fi
+          asset="dist/release/steamidtools-sourcemod-${RELEASE_VERSION}.zip"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$asset" --clobber
           else
-            if [[ "${{ needs.prepare-channel.outputs.prerelease }}" == "true" ]]; then
-              gh release create "$tag" --title "$title" --prerelease --target "$GITHUB_SHA"
-            else
-              gh release create "$tag" --title "$title" --latest --target "$GITHUB_SHA"
-            fi
-          fi
-
-          gh release upload "$tag" "$backend_asset" "$sourcemod_asset" --clobber
-
-  create-release:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: prepare-release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        if: needs.prepare-release.outputs.component == 'backend'
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-          cache-dependency-path: go/go.sum
-
-      - name: Install SourceMod build dependencies
-        if: needs.prepare-release.outputs.component == 'sourcemod'
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes python3 make
-
-      - name: Show SourceMod version
-        if: needs.prepare-release.outputs.component == 'sourcemod'
-        run: |
-          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
-          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
-
-      - name: Show SourceMod version
-        if: needs.prepare-release.outputs.component == 'sourcemod'
-        run: |
-          echo "SOURCEMOD_VERSION=${SOURCEMOD_VERSION}"
-          echo "SOURCEMOD_ARCHIVE_URL=${SOURCEMOD_ARCHIVE_URL}"
-
-      - name: Verify GitHub CLI
-        run: gh --version
-
-      - name: Build backend binary
-        if: needs.prepare-release.outputs.component == 'backend'
-        run: make build
-
-      - name: Build SourceMod artifact
-        if: needs.prepare-release.outputs.component == 'sourcemod'
-        run: bash ./scripts/ci-build-sourcemod.sh
-
-      - name: Package release assets
-        env:
-          RELEASE_COMPONENT: ${{ needs.prepare-release.outputs.component }}
-          RELEASE_VERSION: ${{ needs.prepare-release.outputs.version }}
-        run: bash ./scripts/ci-package-release-assets.sh
-
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          tag="${GITHUB_REF_NAME}"
-          title="${{ needs.prepare-release.outputs.release_name }}"
-
-          if [[ "${{ needs.prepare-release.outputs.component }}" == "backend" ]]; then
-            asset="dist/release/steamid-service-linux-amd64-${{ needs.prepare-release.outputs.version }}.tar.gz"
-          else
-            asset="dist/release/steamidtools-sourcemod-${{ needs.prepare-release.outputs.version }}.zip"
-          fi
-
-          if gh release view "$tag" >/dev/null 2>&1; then
-            if [[ "${{ needs.prepare-release.outputs.prerelease }}" == "true" ]]; then
-              gh release edit "$tag" --title "$title" --prerelease
-            else
-              gh release edit "$tag" --title "$title" --latest
-            fi
-
-            gh release upload "$tag" "$asset" --clobber
-            exit 0
-          fi
-
-          if [[ "${{ needs.prepare-release.outputs.prerelease }}" == "true" ]]; then
-            gh release create "$tag" "$asset" --title "$title" --generate-notes --verify-tag --prerelease
-          else
-            gh release create "$tag" "$asset" --title "$title" --generate-notes --verify-tag --latest
+            options=()
+            if [[ "$PRERELEASE" == true ]]; then options+=(--prerelease); fi
+            gh release create "$RELEASE_TAG" "$asset" --target "$GITHUB_SHA" --title "SteamIDTools ${RELEASE_VERSION}" --generate-notes "${options[@]}"
           fi
