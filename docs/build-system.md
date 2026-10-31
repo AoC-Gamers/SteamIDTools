@@ -1,70 +1,43 @@
-# Sistema de Build
+# Build y empaquetado
 
-## Objetivo
+Las fuentes publicas viven en `addons/sourcemod/scripting/include/` y el
+changelog en `CHANGELOG.md`. `plugin-package-map.json` declara exclusivamente
+el principal y los dos modulos distribuidos; no existe una lista de plugins de produccion.
 
-Este repositorio es mixto:
+`make build-smx` prepara esos includes en `.build/smx/addons/sourcemod/scripting/include/`
+y escribe `deps/build-toolkit.log`. Este target conserva el nombre homologado
+del resto de repositorios, pero no compila ni requiere un SMX ni SDK.
+`make package-smx` prepara `.build/package-smx`; `make release-smx` genera el ZIP
+en `dist/release/` con includes, documentacion, changelog y `build.log`.
 
-- backend Go
-- componente SourceMod
+`scripts/ci-validate-artifact.sh` verifica archivos declarados, contenido exacto
+y ausencia de extras. `make check-package` valida facade, aislamiento, ZIP y
+enlaces. El paquete no contiene plugins, extensiones ni harnesses.
 
-El flujo homologado se aplica solo al carril SourceMod, sin interferir con las tareas del backend.
+## Pruebas aisladas
 
-## Carril SourceMod
+El compilador y la VM se necesitan para pruebas, no para preparar los includes:
 
-Archivos principales:
+```bash
+make deps-smx
+python3 scripts/test-sourcepawn-offline.py --prepare-vm
+make test-offline
+make build-smx package-smx release-smx check-package
+```
 
-- `plugin-package-map.json`
-- `scripts/fetch-sourcemod.py`
-- `scripts/build-local.py`
-- `scripts/stage-artifact.py`
-- `scripts/package-release.py`
-- `scripts/ci-build-sourcemod.sh`
-- `scripts/ci-validate-artifact.sh`
-- `.github/workflows/sourcemod-build.yml`
+`make test-offline` compila el stock real y lo ejecuta con JIT e interprete.
+`make check-package` compila y ejecuta la fachada publica y comprueba sus imports.
+El harness opcional de servidor se compila con
+`python3 scripts/test-sourcepawn-offline.py --server-plugin`; no se instala ni
+se ejecuta automaticamente. Ninguna de estas validaciones opera SRCDS.
 
-Targets:
+## Archivos locales
 
-- `make deps-smx`
-- `make build-smx`
-- `make package-smx`
-- `make release-smx`
+Usar `tmp/` dentro del repositorio para logs, respaldos y fixtures temporales.
+Esta carpeta esta ignorada por Git y no se distribuye en el ZIP. `make clean`
+limpia `.build/` y `dist/`; conserva `tmp/`, las dependencias y la VM.
 
-## Manifiesto
-
-`plugin-package-map.json` define:
-
-- `build.plugins`
-- `artifact.sourcemod`
-
-En este repo:
-
-- se compila solo `steamidtools.sp`
-- el binario se publica en `addons/sourcemod/plugins/custom/`
-- el artifact incluye:
-  - `scripting/steamidtools.sp`
-  - `scripting/steamidtools/`
-  - includes publicas:
-    - `steamidtools.inc`
-    - `steamidtools_helpers.inc`
-    - `steamidtools_stock.inc`
-
-Se excluyen explicitamente del bundle publico:
-
-- `steamidtools_test.sp`
-- `steamworks.inc`
-- `system2.inc`
-- `include/system2/`
-
-## CI
-
-El workflow SourceMod usa:
-
-- `deps-smx`
-- `build-smx`
-- `release-smx`
-
-El workflow de releases del repo sigue siendo mixto, pero el asset SourceMod ya usa el mismo flujo homologado antes de empaquetarse.
-
-## WSL
-
-Si el repo vive bajo `/mnt/`, `build-local.py` usa automaticamente un workspace temporal Linux para evitar la penalizacion de I/O de WSL sobre discos montados.
+`make check-package` ejecuta tambien los modulos productivos de clientes y
+comandos en JIT e interprete, con entradas de engine/consola modeladas. Cubre
+uint32, no conectado/invalido, normalizacion y reconstruccion de argumentos;
+no acredita comportamiento real de clientes o consola de SRCDS.

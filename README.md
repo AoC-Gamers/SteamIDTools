@@ -1,110 +1,64 @@
 # SteamIDTools
 
-Servicio HTTP y toolkit para conversion de SteamID, con backend Go y soporte de integracion para SourceMod.
+Toolkit SourcePawn 4.0.0 para convertir AccountID, SteamID2, SteamID3 y
+SteamID64 localmente. No requiere backend, conexion HTTP, System2, SteamWorks
+ni un plugin residente.
 
-## Componentes
+## Uso
 
-- Backend Go para conversiones `SteamID64`, `AccountID`, `SteamID2` y `SteamID3`
-- OpenAPI/Swagger para exploracion de la API
-- Include SourceMod `steamidtools_stock.inc` para conversiones offline
-- Include SourceMod `steamidtools.inc` para contrato API online
-- Plugin API SourceMod para conversiones online via backend con `SteamWorks` o `system2`
-- Plugin demo SourceMod para probar la API y las conversiones offline
+Copiar `steamidtools.inc` y el directorio `steamidtools/` desde
+`addons/sourcemod/scripting/include/` al proyecto consumidor y recompilarlo:
 
-## Inicio Rapido
+```sourcepawn
+#include <steamidtools>
 
-### Docker Compose
-
-Desarrollo:
-
-```bash
-docker compose -f docker-compose.dev.yml up -d --build
+int accountId;
+char steamId64[32];
+if (SteamIDTools_TryParseAccountID("4294967295", accountId))
+    SteamIDTools_AccountIDToSteamID64(accountId, steamId64, sizeof(steamId64));
 ```
 
-Produccion:
+AccountID conserva los 32 bits sin signo en una celda SourcePawn; comprobar
+`accountId != 0` y usar `SteamIDTools_FormatAccountID` para imprimirlo.
+SteamID64 siempre es una cadena. Los validadores comprueban formato y rango,
+no la existencia de una cuenta ni su autorizacion.
+
+## Desarrollo
 
 ```bash
-docker compose -f docker-compose.yml up -d
-```
-
-### Ejecucion directa
-
-```bash
-cd go
-go run ./cmd/steamid-service
-```
-
-### Verificacion
-
-```bash
-curl "http://localhost:80/health"
-```
-
-Swagger UI:
-
-```text
-http://localhost:80/swagger/index.html
-```
-
-## Documentacion
-
-- [Indice de documentacion](./docs/README.md)
-- [Referencia de SteamID](./docs/steamid-reference.md)
-- [Inicio Rapido](./docs/getting-started.md)
-- [API HTTP](./docs/api.md)
-- [Despliegue y Operacion](./docs/deployment.md)
-- [Integracion SourceMod](./docs/sourcemod.md)
-- [Arquitectura](./docs/architecture.md)
-
-## Changelog y Versionado
-
-- [Changelog Backend Go](./go/CHANGELOG.md)
-- [Changelog SourceMod](./sourcemod/CHANGELOG.md)
-
-Este repositorio usa versionado diferenciado por componente:
-
-- Backend Go: versionado independiente con SemVer
-- Plugin/Include SourceMod: versionado independiente con SemVer
-- API HTTP: compatibilidad logica versionada por major
-
-Compatibilidad:
-
-| HTTP API | Backend Go | SourceMod Plugin |
-|----------|------------|------------------|
-| v1 | 2.x | 2.x |
-
-Reglas:
-
-- Incrementa `patch` cuando hay fixes, logging, tests, documentacion o mejoras internas sin cambio compatible-visible
-- Incrementa `minor` cuando agregas funcionalidad compatible
-- Incrementa `major` cuando rompes compatibilidad del componente
-- Si rompes el contrato HTTP, incrementa el `major` de la API y documenta la compatibilidad minima entre backend y plugin
-- Backend y SourceMod no necesitan publicar la misma version salvo que quieras alinear releases por conveniencia
-
-Tags de release:
-
-- Backend Go: `backend/vX.Y.Z`
-- SourceMod Plugin/Include: `sourcemod/vX.Y.Z`
-- Los tags deben coincidir con la version declarada en el componente antes de publicar el release
-
-## Tooling
-
-```bash
-make deps
-make fmt
-make swagger
-make test
-make lint
-make gosec
-make build
-make clean
-```
-
-SourceMod:
-
-```bash
-make deps-smx
-make build-smx
+make deps-smx build-smx
+python3 scripts/test-sourcepawn-offline.py --prepare-vm
+make test-offline
 make package-smx
 make release-smx
+make check-package
 ```
+
+El build prepara los includes sin requerir compilador. El ZIP contiene
+includes y documentacion, sin plugins ni extensiones. La suite ejecuta el
+include real con JIT e interprete y un oraculo Python independiente.
+
+## Estructura
+
+- `addons/sourcemod/scripting/include/steamidtools.inc`: tipos y conversiones puras.
+- `addons/sourcemod/scripting/include/steamidtools/clients.inc`: consultas de clientes.
+- `addons/sourcemod/scripting/include/steamidtools/commands.inc`: argumentos de comandos.
+- `tests/`: corpus SourcePawn, adaptadores VM y pruebas del paquete.
+- `scripts/`: toolchain, compilacion, validacion y empaquetado.
+- `docs/`: referencia, contratos, build y migracion.
+- `tmp/`: logs, respaldos y fixtures temporales; ignorado por Git.
+- `deps/`, `.build/` y `dist/`: dependencias y salidas locales ignoradas.
+
+`make clean` elimina las salidas generadas y conserva la toolchain y la VM.
+
+## Documentacion y versiones
+
+- [Indice](docs/index.md)
+- [Migracion desde 2.x/3.x](docs/migration.md)
+- [Conversiones y pruebas](docs/sourcemod.md)
+- [Referencia SteamID](docs/steamid-reference.md)
+- [Changelog](CHANGELOG.md)
+
+Versionado SemVer del toolkit. Tags `sourcemod/vX.Y.Z`; canales
+`channel/develop` y `channel/latest`. El backend anterior queda conservado en
+la rama local `codex/archive-http-backend`; no se publica como parte de 4.x.

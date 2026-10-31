@@ -190,5 +190,5 @@ Puntos a tener presentes:
 En este repositorio:
 
 - el include SourceMod usa estas relaciones para conversiones offline
-- el backend Go expone conversiones HTTP entre estos formatos
+- no existe un backend HTTP de conversiones en la version actual
 - la validacion debe seguir la estructura documentada por Valve, no heuristicas de prefijos fijos

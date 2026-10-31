@@ -17,11 +17,11 @@ def copy_if_exists(source: Path, destination: Path) -> None:
 
 def main() -> int:
     if len(sys.argv) not in (4, 5):
-        raise SystemExit("Usage: stage-artifact.py <root_dir> <build_dir> <compile_log> [output_dir]")
+        raise SystemExit("Usage: stage-artifact.py <root_dir> <build_dir> <build_log> [output_dir]")
 
     root_dir = Path(sys.argv[1]).resolve()
     build_dir = Path(sys.argv[2]).resolve()
-    compile_log = Path(sys.argv[3]).resolve()
+    build_log = Path(sys.argv[3]).resolve()
     output_dir = Path(sys.argv[4]).resolve() if len(sys.argv) == 5 else root_dir / "dist" / "sourcemod" / "artifact"
 
     if output_dir.exists():
@@ -32,8 +32,8 @@ def main() -> int:
     copy_if_exists(root_dir / "README.md", output_dir / "README.md")
     copy_if_exists(root_dir / "plugin-package-map.json", output_dir / "plugin-package-map.json")
     copy_if_exists(root_dir / "docs", output_dir / "docs")
-    copy_if_exists(root_dir / "sourcemod" / "CHANGELOG.md", output_dir / "sourcemod" / "CHANGELOG.md")
-    copy_if_exists(compile_log, output_dir / "compile.log")
+    copy_if_exists(root_dir / "CHANGELOG.md", output_dir / "CHANGELOG.md")
+    copy_if_exists(build_log, output_dir / "build.log")
 
     print(f"SourceMod artifacts generated in {output_dir}")
     return 0

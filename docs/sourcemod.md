@@ -1,37 +1,30 @@
-# Integracion SourceMod
+# Integracion SourceMod offline
 
-El proyecto incluye dos cosas para SourceMod:
+## Instalacion y responsabilidades
 
-- Un include reutilizable de stocks offline.
-- Un include de API online que expone la library del plugin.
-- Un plugin API (`steamidtools.sp`) para conversiones online contra el backend.
-- Un plugin demo (`steamidtools_test.sp`) que consume esa API.
+Copiar `steamidtools.inc` y el directorio `steamidtools/` desde
+`addons/sourcemod/scripting/include/` al proyecto consumidor y recompilarlo.
 
-## Archivos principales
+- `#include <steamidtools>` declara tipos, constantes, formatos, conversiones y URLs.
+- `#include <steamidtools/clients>` agrega obtener y buscar clientes conectados.
+- `#include <steamidtools/commands>` agrega argumentos normalizados y reconstruccion
+  de identidades. No incluye el modulo de clientes.
 
-- `sourcemod/scripting/include/steamidtools_stock.inc`
-- `sourcemod/scripting/include/steamidtools.inc`
-- `sourcemod/scripting/steamidtools.sp`
-- `sourcemod/scripting/steamidtools_test.sp`
-- `sourcemod/scripting/steamidtools/steamidtools_steamworks.sp`
-- `sourcemod/scripting/steamidtools/steamidtools_system2.sp`
+Los dos modulos importan el principal. Cada stock se compila en el consumidor;
+no hay biblioteca dinamica, transporte ni SMX residente. Los nombres y cuerpos
+productivos se conservan, incluidos uint32, buffers, SteamID64 como cadena y
+retornos de busqueda: cero para identidad invalida y -1 para cuenta no conectada.
+Validar formato no acredita la existencia de una cuenta ni concede permisos.
+Cada consumidor conserva sus comprobaciones de autorizacion y persistencia.
 
-## Build local
-
-El carril SourceMod del repo usa:
-
-- `make deps-smx`
-- `make build-smx`
-- `make package-smx`
-- `make release-smx`
-
-El zip final queda en:
-
-- `dist/release/`
+El ZIP distribuye los includes y la documentacion. El harness de regresion
+es optativo y queda fuera del paquete. La entrega de plugins consumidores
+y la retirada de binarios HTTP antiguos necesitan su propio alcance operativo;
+ver [migracion](migration.md).
 
 ## Conversiones offline
 
-`steamidtools_stock.inc` permite conversiones sin backend HTTP.
+`steamidtools.inc` permite conversiones sin backend HTTP.
 
 Casos soportados:
 
@@ -63,7 +56,7 @@ Si necesitas otro valor en compile-time:
 
 ```sourcepawn
 #define STEAMIDTOOLS_SID2_UNIVERSE 0
-#include <steamidtools_stock>
+#include <steamidtools>
 ```
 
 ### Prueba de regresion offline
@@ -96,7 +89,7 @@ make test-offline
 Para contrastar otra copia del include con el mismo corpus:
 
 ```bash
-python3 scripts/test-sourcepawn-offline.py --stock-include ../otra-copia/steamidtools_stock.inc
+python3 scripts/test-sourcepawn-offline.py --stock-include ../otra-copia/steamidtools.inc
 ```
 
 La salida identifica el SHA256 del include, los casos de borde y los fallos por
@@ -109,7 +102,7 @@ reproduce el limite de `strtoul` de Linux de 32 bits usado por
 [SourceMod](https://github.com/alliedmodders/sourcemod/blob/1.12-dev/core/logic/smn_string.cpp).
 Los adaptadores cubren unicamente las primitivas que necesita este corpus.
 El modo VM no valida clientes, extensiones, callbacks ni la carga en SRCDS.
-Los tests de Go y el plugin demo son verificaciones independientes.
+El harness de servidor es una verificacion independiente.
 
 La suite cubre los casos de regresion corregidos en `2.5.0`: rechazo del bit alto del
 AccountID, SteamID3 cortos y validadores permisivos. Compilar el plugin
@@ -156,125 +149,3 @@ sm plugins unload disabled/steamidtools_stock_test.smx
 Este modo verifica las conversiones con los natives reales de SourceMod y la
 carga del harness. No requiere jugadores conectados y no prueba callbacks de
 clientes ni el flujo de deteccion de Family Sharing.
-
-## Plugin API HTTP
-
-`steamidtools.inc` ya no mezcla stocks offline con la library del plugin. Ahora:
-
-- incluye `steamidtools_stock.inc`
-- declara la library `steamidtools`
-- expone `natives` y `forwards` del plugin online
-
-`steamidtools.sp` ya no es el plugin de prueba. Ahora:
-
-- registra la library `steamidtools`
-- expone `natives` para encolar requests online
-- emite un `forward` cuando la respuesta llega
-- resuelve internamente el transporte con `SteamWorks` o `system2`
-
-Natives expuestos:
-
-- `SteamIDTools_IsProviderAvailable`
-- `SteamIDTools_GetApiBaseUrl`
-- `SteamIDTools_RequestConversion`
-- `SteamIDTools_RequestBatch`
-
-Forward expuesto:
-
-- `SteamIDTools_OnRequestFinished`
-
-Config:
-
-- ConVar `steamidtools_api_base_url`
-- Default actual: `http://localhost:80`
-
-## Plugin demo
-
-`steamidtools_test.sp` es el consumidor de ejemplo de la API.
-
-Comandos:
-
-- `sm_steamidtools <offline|steamworks|system2>`
-- `sm_steamidtools_batch <steamworks|system2>`
-
-## Mejoras ya aplicadas
-
-- Encoding seguro del parametro `steamid` para requests HTTP.
-- Contexto async seguro usando `userid` en vez de `client index`.
-- Menos duplicacion entre `SteamWorks` y `system2`.
-- `system2` ya no depende de `StringMap` para labels temporales.
-
-## Ejemplo offline
-
-```sourcepawn
-#include <sourcemod>
-#include <steamidtools_stock>
-
-public Action CmdOfflineConversion(int client, int args)
-{
-    int accountId = GetClientAccountID(client);
-    char sid2[MAX_AUTHID_LENGTH];
-
-    if (AccountIDToSteamID2(accountId, sid2, sizeof(sid2)))
-    {
-        PrintToChat(client, "AccountID %d -> SteamID2: %s", accountId, sid2);
-    }
-
-    return Plugin_Handled;
-}
-```
-
-## Ejemplo API online
-
-```sourcepawn
-#include <sourcemod>
-#include <steamidtools>
-
-StringMap g_RequestClients;
-
-public void OnPluginStart()
-{
-    g_RequestClients = new StringMap();
-}
-
-public Action CmdExample(int client, int args)
-{
-    int requestId = SteamIDTools_RequestConversion(
-        SteamIDToolsProvider_SteamWorks,
-        API_SID64toAID,
-        "76561197960287930",
-        "Lookup"
-    );
-
-    if (requestId > 0)
-    {
-        char key[16];
-        IntToString(requestId, key, sizeof(key));
-        g_RequestClients.SetValue(key, GetClientUserId(client));
-    }
-
-    return Plugin_Handled;
-}
-
-public void SteamIDTools_OnRequestFinished(int requestId, SteamIDToolsProvider provider, bool success, bool batch, const char[] endpoint, const char[] input, const char[] result, const char[] tag)
-{
-    char key[16];
-    IntToString(requestId, key, sizeof(key));
-
-    int userId = 0;
-    if (!g_RequestClients.GetValue(key, userId))
-    {
-        return;
-    }
-
-    g_RequestClients.Remove(key);
-
-    int client = GetClientOfUserId(userId);
-    if (client <= 0 || !IsClientInGame(client))
-    {
-        return;
-    }
-
-    ReplyToCommand(client, "[STEAMIDTOOLS] %s: %s", tag, result);
-}
-```

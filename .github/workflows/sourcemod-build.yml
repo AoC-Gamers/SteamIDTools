@@ -4,25 +4,35 @@ on:
   push:
     paths:
       - .github/workflows/sourcemod-build.yml
-      - scripts/ci-build-sourcemod.sh
       - scripts/ci-validate-artifact.sh
       - scripts/fetch-sourcemod.py
       - scripts/build-local.py
       - scripts/stage-artifact.py
       - scripts/package-release.py
       - plugin-package-map.json
-      - sourcemod/**
+      - addons/**
+      - CHANGELOG.md
+      - tests/**
+      - scripts/test-sourcepawn-offline.py
+      - Makefile
+      - docs/**
+      - README.md
   pull_request:
     paths:
       - .github/workflows/sourcemod-build.yml
-      - scripts/ci-build-sourcemod.sh
       - scripts/ci-validate-artifact.sh
       - scripts/fetch-sourcemod.py
       - scripts/build-local.py
       - scripts/stage-artifact.py
       - scripts/package-release.py
       - plugin-package-map.json
-      - sourcemod/**
+      - addons/**
+      - CHANGELOG.md
+      - tests/**
+      - scripts/test-sourcepawn-offline.py
+      - Makefile
+      - docs/**
+      - README.md
   workflow_dispatch:
     inputs:
       sourcemod_version:
@@ -99,8 +109,16 @@ jobs:
           key: ${{ needs.deps-smx.outputs.cache-key }}
           fail-on-cache-miss: true
 
-      - name: Build SMX
-        run: make build-smx PYTHON=python3 SPCOMP="deps/sourcemod-linux/addons/sourcemod/scripting/spcomp"
+      - name: Prepare offline includes
+        run: make build-smx PYTHON=python3
+
+      - name: Test offline toolkit and facade
+        run: |
+          python3 scripts/test-sourcepawn-offline.py --prepare-vm
+          make test-offline
+          make package-smx
+          python3 scripts/stage-artifact.py . .build/package-smx deps/build-toolkit.log
+          make check-package
 
       - name: Upload SMX build tree
         uses: actions/upload-artifact@v6
@@ -110,11 +128,11 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Upload compile log
+      - name: Upload build log
         uses: actions/upload-artifact@v6
         with:
-          name: smx-compile-log
-          path: deps/build-smx-compile.log
+          name: toolkit-build-log
+          path: deps/build-toolkit.log
           if-no-files-found: error
           retention-days: 1
 
@@ -137,10 +155,10 @@ jobs:
           name: smx-build
           path: .build/smx
 
-      - name: Download compile log
+      - name: Download build log
         uses: actions/download-artifact@v8
         with:
-          name: smx-compile-log
+          name: toolkit-build-log
           path: deps
 
       - name: Package SMX tree
@@ -148,7 +166,7 @@ jobs:
 
       - name: Stage and validate artifact
         run: |
-          python3 ./scripts/stage-artifact.py . ./.build/package-smx ./deps/build-smx-compile.log
+          python3 ./scripts/stage-artifact.py . ./.build/package-smx ./deps/build-toolkit.log
           bash ./scripts/ci-validate-artifact.sh
 
       - name: Resolve artifact name
