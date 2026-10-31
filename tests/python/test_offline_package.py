@@ -1,6 +1,8 @@
 """Inspect compiled dependency metadata and execute the public facade in the VM."""
 from pathlib import Path
 import struct
+import os
+import shutil
 import re
 import subprocess
 import tempfile
@@ -25,8 +27,12 @@ def section_image(path):
 
 
 class OfflinePackage(unittest.TestCase):
-    def test_example_has_no_online_plugin_or_extension_imports(self):
-        image, sections, string = section_image(ROOT/'.build/examples/steamidtools_example.smx')
+    @classmethod
+    def setUpClass(cls):
+        (ROOT/'tmp').mkdir(exist_ok=True)
+
+    def assert_offline_imports(self, binary):
+        image, sections, string = section_image(binary)
         names = sections['.names'][0]
         for section in ('.pubvars', '.natives'):
             offset, size = sections[section]
@@ -39,7 +45,7 @@ class OfflinePackage(unittest.TestCase):
                 self.assertNotIn('system2', symbol.lower())
 
     def test_public_facade_executes_without_http(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(dir=ROOT/'tmp') as tmp:
             source = Path(tmp)/'facade.sp'
             binary = Path(tmp)/'facade.smx'
             source.write_text('''#include <steamidtools>
@@ -56,7 +62,8 @@ public int main() {
 }
 ''')
             compiler = ROOT/'deps/sourcemod-linux/addons/sourcemod/scripting/spcomp'
-            subprocess.run([str(compiler), str(source), '-i'+str(ROOT/'sourcemod/scripting/include'), '-i'+str(compiler.parent/'include'), '-o'+str(binary)], check=True, capture_output=True)
+            subprocess.run([str(compiler), str(source), '-i'+str(ROOT/'addons/sourcemod/scripting/include'), '-i'+str(compiler.parent/'include'), '-o'+str(binary)], check=True, capture_output=True)
+            self.assert_offline_imports(binary)
             shell, = (ROOT/'deps/sourcepawn/objdir').glob('spshell/**/spshell')
             for flags in ([], ['--disable-jit']):
                 subprocess.run([str(shell), *flags, str(binary)], check=True)
@@ -86,3 +93,34 @@ public int main() {
                 if '://' in target or target.startswith('#'):
                     continue
                 self.assertTrue((path.parent/target.split('#')[0]).exists(), f'{path}: {target}')
+
+    def test_build_only_needs_manifest_and_includes(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'tmp') as tmp:
+            lab = Path(tmp)
+            shutil.copy2(ROOT/'plugin-package-map.json', lab/'plugin-package-map.json')
+            shutil.copytree(ROOT/'addons', lab/'addons')
+            command = ['python3', str(ROOT/'scripts/build-local.py'), '--root', str(lab), '--build-log', 'tmp/build.log']
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+            self.assertFalse((lab/'deps').exists())
+            self.assertEqual(len(list((lab/'.build/smx').rglob('*.inc'))), 3)
+            # A missing source must fail before replacing the previous valid output.
+            (lab/'addons/sourcemod/scripting/include/steamidtools.inc').unlink()
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertTrue((lab/'.build/smx/addons/sourcemod/scripting/include/steamidtools.inc').exists())
+
+    def test_validator_rejects_stale_plugins_and_modified_includes(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'tmp') as tmp:
+            lab = Path(tmp)/'artifact'
+            shutil.copytree(ROOT/'dist/sourcemod/artifact', lab)
+            env = dict(os.environ, SOURCEMOD_ARTIFACT_DIR=str(lab))
+            command = ['bash', str(ROOT/'scripts/ci-validate-artifact.sh')]
+            stale = lab/'addons/sourcemod/plugins/old.smx'
+            stale.parent.mkdir()
+            stale.write_bytes(b'old plugin')
+            self.assertNotEqual(subprocess.run(command, env=env, capture_output=True).returncode, 0)
+            shutil.rmtree(stale.parent)
+            target = lab/'addons/sourcemod/scripting/include/steamidtools.inc'
+            target.write_text('/* modified include */')
+            self.assertNotEqual(subprocess.run(command, env=env, capture_output=True).returncode, 0)

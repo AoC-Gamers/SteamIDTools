@@ -1,20 +1,35 @@
 # Build y empaquetado
 
-`make deps-smx` prepara SourceMod Linux. `make build-smx` compila `examples/steamidtools_example.sp` en
-`.build/examples/`, registra el compilador en `deps/build-smx-compile.log` y
-materializa solo los tres includes en `.build/smx/addons/sourcemod/scripting/include/`.
-`plugin-package-map.json` declara un conjunto vacio de plugins de produccion.
+Las fuentes publicas viven en `addons/sourcemod/scripting/include/` y el
+changelog en `CHANGELOG.md`. `plugin-package-map.json` declara exclusivamente
+los tres includes distribuidos; no existe una lista de plugins de produccion.
 
+`make build-smx` prepara esos includes en `.build/smx/addons/sourcemod/scripting/include/`
+y escribe `deps/build-toolkit.log`. Este target conserva el nombre homologado
+del resto de repositorios, pero no compila ni requiere un SMX ni SDK.
 `make package-smx` prepara `.build/package-smx`; `make release-smx` genera el ZIP
-en `dist/release/`. `scripts/ci-validate-artifact.sh` valida el arbol preparado
-por `scripts/stage-artifact.py`; `make check-package` comprueba aislamiento y
-contratos del artifact. El paquete excluye plugins, providers y pruebas.
+en `dist/release/` con includes, documentacion, changelog y `build.log`.
 
-`make test-offline` ejecuta los stocks productivos en JIT e interprete.
-Preparar una vez la VM con
-`python3 scripts/test-sourcepawn-offline.py --prepare-vm`.
-No se compila ni publica un backend. Los workflows de SourceMod y release
-validan el toolkit; publicar sigue requiriendo autorizacion del usuario.
+`scripts/ci-validate-artifact.sh` verifica archivos declarados, contenido exacto
+y ausencia de extras. `make check-package` valida facade, aislamiento, ZIP y
+enlaces. El paquete no contiene plugins, extensiones ni harnesses.
+
+## Pruebas aisladas
+
+El compilador y la VM se necesitan para pruebas, no para preparar los includes:
+
+```bash
+make deps-smx
+python3 scripts/test-sourcepawn-offline.py --prepare-vm
+make test-offline
+make build-smx package-smx release-smx check-package
+```
+
+`make test-offline` compila el stock real y lo ejecuta con JIT e interprete.
+`make check-package` compila y ejecuta la fachada publica y comprueba sus imports.
+El harness opcional de servidor se compila con
+`python3 scripts/test-sourcepawn-offline.py --server-plugin`; no se instala ni
+se ejecuta automaticamente. Ninguna de estas validaciones opera SRCDS.
 
 ## Archivos locales
 

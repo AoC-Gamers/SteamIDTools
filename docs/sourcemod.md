@@ -3,7 +3,7 @@
 ## Instalacion y responsabilidades
 
 Copiar `steamidtools.inc`, `steamidtools_stock.inc` y `steamidtools_helpers.inc`
-desde `sourcemod/scripting/include/` al proyecto consumidor y recompilarlo.
+desde `addons/sourcemod/scripting/include/` al proyecto consumidor y recompilarlo.
 `steamidtools.inc` importa el stock; helpers adapta argumentos de comandos.
 Los stocks se compilan dentro de cada consumidor, sin plugin residente,
 configuracion de red ni extensiones de conversion.
@@ -13,8 +13,7 @@ distinguen exito y valor; cero es una identidad invalida. Validar un formato
 no acredita la existencia de una cuenta ni concede permisos. Cada consumidor
 conserva sus controles de autorizacion, persistencia y consultas de perfil.
 
-El ZIP distribuye los includes y la documentacion. El ejemplo y el harness
-son optativos y quedan fuera del paquete. La entrega de plugins consumidores
+El ZIP distribuye los includes y la documentacion. El harness de regresion es optativo y queda fuera del paquete. La entrega de plugins consumidores
 y la retirada de binarios HTTP antiguos necesitan su propio alcance operativo;
 ver [migracion](migration.md).
 
@@ -98,7 +97,7 @@ reproduce el limite de `strtoul` de Linux de 32 bits usado por
 [SourceMod](https://github.com/alliedmodders/sourcemod/blob/1.12-dev/core/logic/smn_string.cpp).
 Los adaptadores cubren unicamente las primitivas que necesita este corpus.
 El modo VM no valida clientes, extensiones, callbacks ni la carga en SRCDS.
-El ejemplo y el harness de servidor son verificaciones independientes.
+El harness de servidor es una verificacion independiente.
 
 La suite cubre los casos de regresion corregidos en `2.5.0`: rechazo del bit alto del
 AccountID, SteamID3 cortos y validadores permisivos. Compilar el plugin
@@ -145,12 +144,3 @@ sm plugins unload disabled/steamidtools_stock_test.smx
 Este modo verifica las conversiones con los natives reales de SourceMod y la
 carga del harness. No requiere jugadores conectados y no prueba callbacks de
 clientes ni el flujo de deteccion de Family Sharing.
-
-
-## Ejemplo opcional
-
-El build compila `examples/steamidtools_example.sp` fuera del paquete. El comando
-`sm_steamidtools_convert <identity>` usa conversiones locales de forma directa.
-No requiere provider ni health checks. No se instala ni ejecuta automaticamente.
-
-Ver [migracion](migration.md) para retirar la API HTTP anterior.

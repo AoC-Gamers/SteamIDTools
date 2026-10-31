@@ -1,16 +1,15 @@
 {
-  "build": {
-    "plugins": {}
-  },
   "artifact": {
-    "sourcemod": {
-      "scripting": {
-        "include": {
-          "files": [
-            "steamidtools.inc",
-            "steamidtools_helpers.inc",
-            "steamidtools_stock.inc"
-          ]
+    "addons": {
+      "sourcemod": {
+        "scripting": {
+          "include": {
+            "files": [
+              "steamidtools.inc",
+              "steamidtools_helpers.inc",
+              "steamidtools_stock.inc"
+            ]
+          }
         }
       }
     }

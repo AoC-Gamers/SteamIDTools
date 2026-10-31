@@ -6,7 +6,7 @@ ni un plugin residente.
 
 ## Uso
 
-Copiar los tres includes de `sourcemod/scripting/include/` al directorio de
+Copiar los tres includes de `addons/sourcemod/scripting/include/` al directorio de
 includes del proyecto consumidor y recompilarlo:
 
 ```sourcepawn
@@ -34,14 +34,13 @@ make release-smx
 make check-package
 ```
 
-El build compila el ejemplo fuera del paquete de producto. El ZIP contiene
+El build prepara los includes sin requerir compilador. El ZIP contiene
 includes y documentacion, sin plugins ni extensiones. La suite ejecuta el
 include real con JIT e interprete y un oraculo Python independiente.
 
 ## Estructura
 
-- `sourcemod/scripting/include/`: los tres includes publicos.
-- `examples/`: ejemplo opcional de conversion por comando.
+- `addons/sourcemod/scripting/include/`: los tres includes publicos.
 - `tests/`: corpus SourcePawn, adaptadores VM y pruebas del paquete.
 - `scripts/`: toolchain, compilacion, validacion y empaquetado.
 - `docs/`: referencia, contratos, build y migracion.
@@ -56,7 +55,7 @@ include real con JIT e interprete y un oraculo Python independiente.
 - [Migracion desde 2.x](docs/migration.md)
 - [Conversiones y pruebas](docs/sourcemod.md)
 - [Referencia SteamID](docs/steamid-reference.md)
-- [Changelog](sourcemod/CHANGELOG.md)
+- [Changelog](CHANGELOG.md)
 
 Versionado SemVer del toolkit. Tags `sourcemod/vX.Y.Z`; canales
 `channel/develop` y `channel/latest`. El backend anterior queda conservado en

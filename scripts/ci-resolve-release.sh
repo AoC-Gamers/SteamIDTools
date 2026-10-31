@@ -14,7 +14,7 @@ case "$TAG_NAME" in
   sourcemod/v*)
     component="sourcemod"
     version="${TAG_NAME#sourcemod/v}"
-    expected_version="$(sed -n 's/^#define STEAMIDTOOLS_VERSION "\(.*\)"$/\1/p' "$ROOT_DIR/sourcemod/scripting/include/steamidtools_stock.inc")"
+    expected_version="$(sed -n 's/^#define STEAMIDTOOLS_VERSION "\(.*\)"$/\1/p' "$ROOT_DIR/addons/sourcemod/scripting/include/steamidtools_stock.inc")"
     release_name="SourceMod v${version}"
     ;;
   *)
