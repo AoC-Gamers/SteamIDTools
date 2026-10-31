@@ -76,6 +76,7 @@ for forbidden in (
     os.path.join(artifact_root, "scripting", "steamidtools.sp"),
     os.path.join(artifact_root, "scripting", "steamidtools"),
     os.path.join(artifact_root, "scripting", "steamidtools_test.sp"),
+    os.path.join(artifact_root, "scripting", "steamidtools_example.sp"),
     os.path.join(artifact_root, "scripting", "include", "steamworks.inc"),
     os.path.join(artifact_root, "scripting", "include", "system2.inc"),
     os.path.join(artifact_root, "scripting", "include", "system2"),

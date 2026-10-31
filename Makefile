@@ -8,10 +8,10 @@ SMX_PACKAGE_DIR ?= .build/package-smx
 SMX_RELEASE_BASENAME ?= steamidtools-sourcemod-local
 .PHONY: deps-smx build-smx test-offline check-package package-smx release-smx clean
 
-deps-smx: ## Descargar dependencias de SourceMod para compilar el plugin
+deps-smx: ## Preparar el compilador y los includes de SourceMod
 	$(PYTHON) ./scripts/fetch-sourcemod.py --root . --platform "$(SMX_PLATFORM)" --version "$(SOURCEMOD_VERSION)"
 
-build-smx: ## Compilar plugin SourceMod
+build-smx: ## Compilar el ejemplo y preparar el toolkit offline
 	$(PYTHON) ./scripts/build-local.py --root . --spcomp "$(SPCOMP)" --output-root "$(SMX_BUILD_DIR)" --compile-log deps/build-smx-compile.log
 
 test-offline: ## Probar stocks reales en SourcePawn VM (requiere preparacion; Linux x86_64)

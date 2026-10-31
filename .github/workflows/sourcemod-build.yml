@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - .github/workflows/sourcemod-build.yml
-      - scripts/ci-build-sourcemod.sh
       - scripts/ci-validate-artifact.sh
       - scripts/fetch-sourcemod.py
       - scripts/build-local.py
@@ -12,6 +11,7 @@ on:
       - scripts/package-release.py
       - plugin-package-map.json
       - sourcemod/**
+      - examples/**
       - tests/**
       - scripts/test-sourcepawn-offline.py
       - Makefile
@@ -20,7 +20,6 @@ on:
   pull_request:
     paths:
       - .github/workflows/sourcemod-build.yml
-      - scripts/ci-build-sourcemod.sh
       - scripts/ci-validate-artifact.sh
       - scripts/fetch-sourcemod.py
       - scripts/build-local.py
@@ -28,6 +27,7 @@ on:
       - scripts/package-release.py
       - plugin-package-map.json
       - sourcemod/**
+      - examples/**
       - tests/**
       - scripts/test-sourcepawn-offline.py
       - Makefile

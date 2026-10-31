@@ -1,5 +1,23 @@
 # Integracion SourceMod offline
 
+## Instalacion y responsabilidades
+
+Copiar `steamidtools.inc`, `steamidtools_stock.inc` y `steamidtools_helpers.inc`
+desde `sourcemod/scripting/include/` al proyecto consumidor y recompilarlo.
+`steamidtools.inc` importa el stock; helpers adapta argumentos de comandos.
+Los stocks se compilan dentro de cada consumidor, sin plugin residente,
+configuracion de red ni extensiones de conversion.
+
+La API publica vive en `steamidtools_stock.inc`. Las funciones `TryParse`
+distinguen exito y valor; cero es una identidad invalida. Validar un formato
+no acredita la existencia de una cuenta ni concede permisos. Cada consumidor
+conserva sus controles de autorizacion, persistencia y consultas de perfil.
+
+El ZIP distribuye los includes y la documentacion. El ejemplo y el harness
+son optativos y quedan fuera del paquete. La entrega de plugins consumidores
+y la retirada de binarios HTTP antiguos necesitan su propio alcance operativo;
+ver [migracion](migration.md).
+
 ## Conversiones offline
 
 `steamidtools_stock.inc` permite conversiones sin backend HTTP.
@@ -131,7 +149,7 @@ clientes ni el flujo de deteccion de Family Sharing.
 
 ## Ejemplo opcional
 
-El build compila `steamidtools_test.sp` fuera del paquete. El comando
+El build compila `examples/steamidtools_example.sp` fuera del paquete. El comando
 `sm_steamidtools_convert <identity>` usa conversiones locales de forma directa.
 No requiere provider ni health checks. No se instala ni ejecuta automaticamente.
 

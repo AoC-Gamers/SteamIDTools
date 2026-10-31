@@ -196,9 +196,9 @@ def main() -> int:
         output_file = (plugins_root if bucket == "root" else plugins_root / bucket) / f"{source_file.stem}.smx"
         run_spcomp(spcomp, source_file, include_dirs, output_file, compile_log)
 
-    example_output = root / ".build" / "examples" / "steamidtools_test.smx"
+    example_output = root / ".build" / "examples" / "steamidtools_example.smx"
     example_output.parent.mkdir(parents=True, exist_ok=True)
-    run_spcomp(spcomp, scripting_dir / "steamidtools_test.sp", include_dirs, example_output, compile_log)
+    run_spcomp(spcomp, root / "examples" / "steamidtools_example.sp", include_dirs, example_output, compile_log)
 
     copy_manifest_tree(artifact_manifest, source_root, artifact_root)
 

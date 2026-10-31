@@ -38,9 +38,21 @@ El build compila el ejemplo fuera del paquete de producto. El ZIP contiene
 includes y documentacion, sin plugins ni extensiones. La suite ejecuta el
 include real con JIT e interprete y un oraculo Python independiente.
 
+## Estructura
+
+- `sourcemod/scripting/include/`: los tres includes publicos.
+- `examples/`: ejemplo opcional de conversion por comando.
+- `tests/`: corpus SourcePawn, adaptadores VM y pruebas del paquete.
+- `scripts/`: toolchain, compilacion, validacion y empaquetado.
+- `docs/`: referencia, contratos, build y migracion.
+- `tmp/`: logs, respaldos y fixtures temporales; ignorado por Git.
+- `deps/`, `.build/` y `dist/`: dependencias y salidas locales ignoradas.
+
+`make clean` elimina las salidas generadas y conserva la toolchain y la VM.
+
 ## Documentacion y versiones
 
-- [Indice](docs/README.md)
+- [Indice](docs/index.md)
 - [Migracion desde 2.x](docs/migration.md)
 - [Conversiones y pruebas](docs/sourcemod.md)
 - [Referencia SteamID](docs/steamid-reference.md)

@@ -26,7 +26,7 @@ def section_image(path):
 
 class OfflinePackage(unittest.TestCase):
     def test_example_has_no_online_plugin_or_extension_imports(self):
-        image, sections, string = section_image(ROOT/'.build/examples/steamidtools_test.smx')
+        image, sections, string = section_image(ROOT/'.build/examples/steamidtools_example.smx')
         names = sections['.names'][0]
         for section in ('.pubvars', '.natives'):
             offset, size = sections[section]
