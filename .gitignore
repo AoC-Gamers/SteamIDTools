@@ -1,4 +1,5 @@
 # Local dependencies, generated artifacts and scratch work
+/.deps/
 /deps/
 /.build/
 /dist/

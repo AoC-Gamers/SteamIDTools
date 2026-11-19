@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // Test-only SourceMod string bindings for AlliedModders' SourcePawn shell.
 // Conversion algorithms remain in the actual include compiled into the SMX.
 #include <algorithm>

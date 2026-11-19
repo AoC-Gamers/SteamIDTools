@@ -1,6 +1,8 @@
 /*
 	steamidtools.inc
-	Copyright (C) 2025 AoC-Gamers
+	SPDX-FileCopyrightText: 2025 lechuga
+	SPDX-FileCopyrightText: 2025 AoC-Gamers
+	SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 #if defined _steamidtools_included

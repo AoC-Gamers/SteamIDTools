@@ -6,8 +6,9 @@ ni un plugin residente.
 
 ## Uso
 
-Copiar `steamidtools.inc` y el directorio `steamidtools/` desde
-`addons/sourcemod/scripting/include/` al proyecto consumidor y recompilarlo:
+Elegir una revisión Git y copiar `steamidtools.inc` y el directorio
+`steamidtools/` desde [`addons/sourcemod/scripting/include/`](addons/sourcemod/scripting/include/)
+al proyecto consumidor. Recompilar el plugin:
 
 ```sourcepawn
 #include <steamidtools>
@@ -26,30 +27,22 @@ no la existencia de una cuenta ni su autorizacion.
 ## Desarrollo
 
 ```bash
-make deps-smx build-smx
-python3 scripts/test-sourcepawn-offline.py --prepare-vm
-make test-offline
-make package-smx
-make release-smx
-make check-package
+make deps-test
+make test
 ```
 
-El build prepara los includes sin requerir compilador. El ZIP contiene
-includes y documentacion, sin plugins ni extensiones. La suite ejecuta el
-include real con JIT e interprete y un oraculo Python independiente.
+La suite ejecuta los includes con JIT e intérprete y usa un oráculo Python
+independiente para las conversiones. Ver las
+[pruebas locales y de CI](docs/build-system.md).
 
 ## Estructura
 
 - `addons/sourcemod/scripting/include/steamidtools.inc`: tipos y conversiones puras.
 - `addons/sourcemod/scripting/include/steamidtools/clients.inc`: consultas de clientes.
 - `addons/sourcemod/scripting/include/steamidtools/commands.inc`: argumentos de comandos.
-- `tests/`: corpus SourcePawn, adaptadores VM y pruebas del paquete.
-- `scripts/`: toolchain, compilacion, validacion y empaquetado.
-- `docs/`: referencia, contratos, build y migracion.
-- `tmp/`: logs, respaldos y fixtures temporales; ignorado por Git.
-- `deps/`, `.build/` y `dist/`: dependencias y salidas locales ignoradas.
-
-`make clean` elimina las salidas generadas y conserva la toolchain y la VM.
+- `tests/` contiene el corpus SourcePawn, el ejecutor y las pruebas de módulos.
+- `scripts/deps/` prepara el compilador de SourceMod.
+- `docs/` contiene la referencia, las instrucciones de pruebas y la migración.
 
 ## Documentacion y versiones
 
@@ -59,6 +52,11 @@ include real con JIT e interprete y un oraculo Python independiente.
 - [Referencia SteamID](docs/steamid-reference.md)
 - [Changelog](CHANGELOG.md)
 
-Versionado SemVer del toolkit. Tags `sourcemod/vX.Y.Z`; canales
-`channel/develop` y `channel/latest`. El backend anterior queda conservado en
-la rama local `codex/archive-http-backend`; no se publica como parte de 4.x.
+El toolkit usa SemVer. Para fijar una dependencia, registra el SHA de la
+revisión que copiaste.
+
+## Licencia
+
+El código propio de SteamIDTools se distribuye bajo la
+[GPL-3.0 o posterior](LICENSE), según la licencia del include original.
+Las herramientas externas usadas en las pruebas conservan sus licencias.

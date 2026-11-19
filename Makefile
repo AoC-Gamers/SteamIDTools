@@ -1,30 +1,35 @@
-SHELL := /bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 PYTHON ?= python3
 SMX_PLATFORM ?= linux
 SOURCEMOD_VERSION ?= 1.12
-SMX_BUILD_DIR ?= .build/smx
-SMX_PACKAGE_DIR ?= .build/package-smx
-SMX_RELEASE_BASENAME ?= steamidtools-sourcemod-local
-.PHONY: deps-smx build-smx test-offline check-package package-smx release-smx clean
+STOCK_INCLUDE ?= addons/sourcemod/scripting/include/steamidtools.inc
+PROJECT_DIR := $(shell dirname -- "$(MAKEFILE_LIST)")
 
-deps-smx: ## Preparar el compilador y los includes de SourceMod
-	$(PYTHON) ./scripts/fetch-sourcemod.py --root . --platform "$(SMX_PLATFORM)" --version "$(SOURCEMOD_VERSION)"
+.PHONY: help deps-smx deps-test test test-offline test-modules build-test-server clean
 
-build-smx: ## Preparar los includes del toolkit offline
-	$(PYTHON) ./scripts/build-local.py --root . --output-root "$(SMX_BUILD_DIR)" --build-log deps/build-toolkit.log
+help:
+	@printf '%s\n' 'make deps-test          Preparar compilador y VM (Linux x86_64)' \
+		'make test               Ejecutar las pruebas de conversiones, imports y módulos' \
+		'make build-test-server  Compilar el harness opcional para SRCDS' \
+		'make clean              Eliminar las salidas locales de prueba'
 
-test-offline: ## Probar stocks reales en SourcePawn VM (requiere preparacion; Linux x86_64)
-	$(PYTHON) ./scripts/test-sourcepawn-offline.py
+deps-smx:
+	cd "$(PROJECT_DIR)" && $(PYTHON) scripts/deps/fetch-sourcemod.py --platform "$(SMX_PLATFORM)" --version "$(SOURCEMOD_VERSION)"
 
-package-smx: ## Preparar arbol SourceMod para artifact/release
-	$(PYTHON) ./scripts/stage-artifact.py . "$(SMX_BUILD_DIR)" "deps/build-toolkit.log" "$(SMX_PACKAGE_DIR)"
+deps-test: deps-smx
+	cd "$(PROJECT_DIR)" && $(PYTHON) tests/runners/test-sourcepawn-offline.py --prepare-vm
 
-release-smx: ## Generar ZIP SourceMod desde el arbol empaquetado
-	$(PYTHON) ./scripts/stage-artifact.py . "$(SMX_PACKAGE_DIR)" "deps/build-toolkit.log"
-	$(PYTHON) ./scripts/package-release.py --root . --basename "$(SMX_RELEASE_BASENAME)"
+test: test-offline test-modules
 
-check-package:
-	$(PYTHON) -m unittest discover -s tests/python -v
+test-offline:
+	cd "$(PROJECT_DIR)" && $(PYTHON) tests/runners/test-sourcepawn-offline.py --stock-include "$(STOCK_INCLUDE)"
+
+test-modules:
+	cd "$(PROJECT_DIR)" && $(PYTHON) -m unittest discover -s tests/python -v
+
+build-test-server:
+	cd "$(PROJECT_DIR)" && $(PYTHON) tests/runners/test-sourcepawn-offline.py --server-plugin --stock-include "$(STOCK_INCLUDE)"
 
 clean:
-	$(PYTHON) -c "import shutil; [shutil.rmtree(p, ignore_errors=True) for p in ['.build', 'dist']]"
+	cd "$(PROJECT_DIR)" && rm -rf .build

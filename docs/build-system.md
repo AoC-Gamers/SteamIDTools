@@ -1,43 +1,32 @@
-# Build y empaquetado
+# Pruebas locales y CI
 
-Las fuentes publicas viven en `addons/sourcemod/scripting/include/` y el
-changelog en `CHANGELOG.md`. `plugin-package-map.json` declara exclusivamente
-el principal y los dos modulos distribuidos; no existe una lista de plugins de produccion.
+SteamIDTools se consume desde una revisión Git. Los includes públicos están en
+`addons/sourcemod/scripting/include/` y se compilan como parte de cada plugin
+consumidor.
 
-`make build-smx` prepara esos includes en `.build/smx/addons/sourcemod/scripting/include/`
-y escribe `deps/build-toolkit.log`. Este target conserva el nombre homologado
-del resto de repositorios, pero no compila ni requiere un SMX ni SDK.
-`make package-smx` prepara `.build/package-smx`; `make release-smx` genera el ZIP
-en `dist/release/` con includes, documentacion, changelog y `build.log`.
+## Preparación y ejecución
 
-`scripts/ci-validate-artifact.sh` verifica archivos declarados, contenido exacto
-y ausencia de extras. `make check-package` valida facade, aislamiento, ZIP y
-enlaces. El paquete no contiene plugins, extensiones ni harnesses.
-
-## Pruebas aisladas
-
-El compilador y la VM se necesitan para pruebas, no para preparar los includes:
+En Linux x86_64, con Git, Make, un compilador C++ y Python 3 con
+`pkg_resources` (`python3-pkg-resources` en Ubuntu 24.04):
 
 ```bash
-make deps-smx
-python3 scripts/test-sourcepawn-offline.py --prepare-vm
-make test-offline
-make build-smx package-smx release-smx check-package
+make deps-test
+make test
 ```
 
-`make test-offline` compila el stock real y lo ejecuta con JIT e interprete.
-`make check-package` compila y ejecuta la fachada publica y comprueba sus imports.
-El harness opcional de servidor se compila con
-`python3 scripts/test-sourcepawn-offline.py --server-plugin`; no se instala ni
-se ejecuta automaticamente. Ninguna de estas validaciones opera SRCDS.
+`make deps-test` prepara el compilador de SourceMod y construye la VM de
+SourcePawn con las revisiones de SourcePawn y AMBuild definidas por el ejecutor.
+La descarga de SourceMod selecciona `SOURCEMOD_VERSION` (1.12 por defecto).
+La toolchain y el log de su compilación quedan en `.deps/`. Si tu copia
+guardaba la toolchain en `deps/`, ejecuta `make deps-test` para preparar la
+nueva ruta.
 
-## Archivos locales
+`make test-offline` compila las conversiones y las contrasta con el oráculo en
+JIT e intérprete. `make test-modules` verifica los imports del include principal
+y prueba los adaptadores de clientes y comandos con entradas modeladas.
+CI usa los mismos targets.
 
-Usar `tmp/` dentro del repositorio para logs, respaldos y fixtures temporales.
-Esta carpeta esta ignorada por Git y no se distribuye en el ZIP. `make clean`
-limpia `.build/` y `dist/`; conserva `tmp/`, las dependencias y la VM.
-
-`make check-package` ejecuta tambien los modulos productivos de clientes y
-comandos en JIT e interprete, con entradas de engine/consola modeladas. Cubre
-uint32, no conectado/invalido, normalizacion y reconstruccion de argumentos;
-no acredita comportamiento real de clientes o consola de SRCDS.
+`make build-test-server` compila el harness opcional de SRCDS. Ver las
+[instrucciones del harness](sourcemod.md#plugin-de-prueba-para-srcds).
+Los binarios y el corpus de prueba se generan en `.build/`.
+`make clean` limpia estas salidas y conserva la toolchain.

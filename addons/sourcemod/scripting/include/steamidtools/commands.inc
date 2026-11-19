@@ -1,6 +1,7 @@
 /*
 	steamidtools/commands.inc
-	Copyright (C) 2026 AoC-Gamers
+	SPDX-FileCopyrightText: 2026 AoC-Gamers
+	SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 #if defined _steamidtools_commands_included

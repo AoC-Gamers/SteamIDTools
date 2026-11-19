@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
 import platform as py_platform
@@ -53,7 +54,7 @@ def main() -> int:
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
-    deps_dir = root / "deps"
+    deps_dir = root / ".deps"
     platform = args.platform or detect_platform()
     archive_name = "sourcemod-windows.zip" if platform == "windows" else "sourcemod-linux.tar.gz"
     extract_dir = deps_dir / f"sourcemod-{platform}"

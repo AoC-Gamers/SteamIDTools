@@ -17,10 +17,8 @@ retornos de busqueda: cero para identidad invalida y -1 para cuenta no conectada
 Validar formato no acredita la existencia de una cuenta ni concede permisos.
 Cada consumidor conserva sus comprobaciones de autorizacion y persistencia.
 
-El ZIP distribuye los includes y la documentacion. El harness de regresion
-es optativo y queda fuera del paquete. La entrega de plugins consumidores
-y la retirada de binarios HTTP antiguos necesitan su propio alcance operativo;
-ver [migracion](migration.md).
+Obtén los includes de una revisión Git. Para actualizar plugins consumidores
+que usaban el binario HTTP, consulta la [migración](migration.md).
 
 ## Conversiones offline
 
@@ -72,13 +70,12 @@ buffers insuficientes para AccountID, SteamID2, SteamID3 y SteamID64.
 Preparacion en Linux x86_64, con Git, Python 3 y un compilador C++ disponibles:
 
 ```bash
-make deps-smx
-python3 scripts/test-sourcepawn-offline.py --prepare-vm
+make deps-test
 ```
 
-El script descarga revisiones fijadas de SourcePawn y AMBuild en `deps/`, agrega
+El ejecutor descarga revisiones fijadas de SourcePawn y AMBuild en `.deps/`, agrega
 adaptadores de prueba para las primitivas de cadenas de SourceMod y compila el
-shell. El log de esa compilacion queda en `deps/sourcepawn-build.log`.
+shell. El log de esa compilacion queda en `.deps/sourcepawn-build.log`.
 Los SMX y el corpus generado quedan en `.build/stock-tests/`.
 Las ejecuciones posteriores usan:
 
@@ -89,7 +86,7 @@ make test-offline
 Para contrastar otra copia del include con el mismo corpus:
 
 ```bash
-python3 scripts/test-sourcepawn-offline.py --stock-include ../otra-copia/steamidtools.inc
+make test-offline STOCK_INCLUDE=../otra-copia/steamidtools.inc
 ```
 
 La salida identifica el SHA256 del include, los casos de borde y los fallos por
@@ -114,11 +111,11 @@ El mismo harness puede compilarse como plugin SourceMod, sin los adaptadores
 de cadenas del shell:
 
 ```bash
-python3 scripts/test-sourcepawn-offline.py --server-plugin
+make build-test-server
 ```
 
-La salida muestra la ruta de `steamidtools_stock_test.smx`. Este binario de
-prueba queda fuera del artifact ordinario y no necesita el plugin API HTTP.
+La salida muestra la ruta de `steamidtools_stock_test.smx`, el harness de prueba
+para SourceMod.
 Copiarlo a `plugins/disabled/` del servidor y, desde su consola mediante tmux,
 ejecutar:
 

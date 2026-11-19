@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 """Execute the productive modules in SourcePawn with modeled engine/console inputs."""
 from pathlib import Path
 import subprocess
@@ -5,18 +7,20 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+DEPS_DIR = ROOT / ".deps"
+TEST_DIR = ROOT / ".build"
 
 
 class Modules(unittest.TestCase):
     def run_vm(self, source):
-        (ROOT/'tmp').mkdir(exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=ROOT/'tmp') as tmp:
+        TEST_DIR.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=TEST_DIR) as tmp:
             sp, smx = Path(tmp)/'module.sp', Path(tmp)/'module.smx'
             sp.write_text(source)
-            compiler = ROOT/'deps/sourcemod-linux/addons/sourcemod/scripting/spcomp'
+            compiler = DEPS_DIR / "sourcemod-linux/addons/sourcemod/scripting/spcomp64"
             result = subprocess.run([str(compiler), str(sp), '-i'+str(ROOT/'addons/sourcemod/scripting/include'), '-i'+str(compiler.parent/'include'), '-o'+str(smx)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-            shell, = (ROOT/'deps/sourcepawn/objdir').glob('spshell/**/spshell')
+            shell, = (DEPS_DIR / "sourcepawn/objdir").glob('spshell/**/spshell')
             for flags in ([], ['--disable-jit']):
                 result = subprocess.run([str(shell), *flags, str(smx)], capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stdout+result.stderr)

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 """Compile the real stock include and execute it in SourcePawn's standalone VM."""
 
 import argparse
@@ -8,9 +10,11 @@ import os
 from pathlib import Path
 import random
 import subprocess
+import sys
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+DEPS_DIR = ROOT / ".deps"
 SP_REVISION = "11b22edb634b9764d19fd28699e03289cfd18520"
 AMBUILD_REVISION = "01212cb57c96561f664b6dfb2ee10e66de6f81e4"
 SEED = 550
@@ -21,10 +25,9 @@ def run(arguments, **kwargs):
 
 
 def prepare_vm():
-    deps = ROOT / "deps"
-    deps.mkdir(exist_ok=True)
+    DEPS_DIR.mkdir(parents=True, exist_ok=True)
     for name, revision in (("sourcepawn", SP_REVISION), ("ambuild", AMBUILD_REVISION)):
-        checkout = deps / name
+        checkout = DEPS_DIR / name
         if not checkout.exists():
             run(["git", "init", checkout])
             run(["git", "-C", checkout, "remote", "add", "origin",
@@ -35,7 +38,7 @@ def prepare_vm():
             ["git", "-C", str(checkout), "rev-parse", "HEAD"], text=True).strip()
         if actual != revision:
             raise SystemExit(f"Unexpected {name} revision: {actual}; expected {revision}")
-    source = deps / "sourcepawn"
+    source = DEPS_DIR / "sourcepawn"
     run(["git", "submodule", "update", "--init", "--recursive", "--depth=1"], cwd=source)
     # This upstream revision has GCC 13 warnings. Keep them in the build log
     # without making them fatal, only for the standalone test tooling.
@@ -54,11 +57,11 @@ def prepare_vm():
         binding = '  BindNative(rt, "add_test_structs", AddTestStructs);'
         contents = contents.replace(binding, binding + "\n  BindOfflineStringNatives(rt);")
     shell.write_text(contents)
-    environment = dict(os.environ, PYTHONPATH=str(deps / "ambuild"))
-    run(["python3", "configure.py", "--targets=x86_64", "--enable-optimize"],
+    environment = dict(os.environ, PYTHONPATH=str(DEPS_DIR / "ambuild"))
+    run([sys.executable, "configure.py", "--targets=x86_64", "--enable-optimize"],
         cwd=source, env=environment)
-    with (deps / "sourcepawn-build.log").open("w") as log:
-        run(["python3", "-c", "from ambuild2.run import cli_run; cli_run()",
+    with (DEPS_DIR / "sourcepawn-build.log").open("w") as log:
+        run([sys.executable, "-c", "from ambuild2.run import cli_run; cli_run()",
              "objdir", "-j", "2"], cwd=source, env=environment,
             stdout=log, stderr=subprocess.STDOUT)
 
@@ -95,11 +98,14 @@ def main():
     options = parser.parse_args()
     if options.prepare_vm:
         prepare_vm()
+        return 0
     stock = options.stock_include.resolve()
-    compiler = ROOT / "deps/sourcemod-linux/addons/sourcemod/scripting/spcomp"
-    shells = list((ROOT / "deps/sourcepawn/objdir").glob("spshell/**/spshell"))
-    if not compiler.is_file() or (not options.server_plugin and len(shells) != 1):
-        raise SystemExit("Run make deps-smx, then this script with --prepare-vm")
+    compiler = DEPS_DIR / "sourcemod-linux/addons/sourcemod/scripting/spcomp64"
+    if not compiler.is_file():
+        raise SystemExit("Run make deps-smx to prepare the SourceMod compiler")
+    shells = list((DEPS_DIR / "sourcepawn/objdir").glob("spshell/**/spshell"))
+    if not options.server_plugin and len(shells) != 1:
+        raise SystemExit("Run make deps-test to prepare the standalone SourcePawn VM")
     digest = hashlib.sha256(stock.read_bytes()).hexdigest()
     build = ROOT / ".build/stock-tests" / digest[:12]
     build.mkdir(parents=True, exist_ok=True)
