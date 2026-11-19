@@ -4,11 +4,15 @@
 
 ### Cambiado
 
-- SteamIDTools se obtiene desde una revisión Git. Se retiran los ZIP de
-  includes y sus tareas de publicación automática. Las pruebas de conversión
-  y de módulos se ejecutan con `make test` en local y CI.
+- SteamIDTools se obtiene desde una revisión Git y se compila como parte de
+  cada plugin consumidor.
 - Se documenta la licencia GPL-3.0 o posterior para el código de SteamIDTools,
   en continuidad con la licencia del include original.
+
+### Eliminado
+
+- Se retiran Make, el workflow de GitHub Actions, las herramientas de compilación
+  y pruebas, y la generación y publicación de ZIP de la biblioteca.
 
 ## 4.0.0
 
