@@ -1,29 +1,5 @@
 # Local dependencies, generated artifacts and scratch work
-/.deps/
-/deps/
-/.build/
-/dist/
 /tmp/
-*.smx
-*.so
-*.log
-*.zip
-*.tar.gz
-
-# Python tooling
-__pycache__/
-*.py[cod]
-.venv/
-.pytest_cache/
-.coverage
-.coverage.*
-/reports/
-
-# Private/local configuration
-.env
-.env.*
-*.local.cfg
-config.local.*
 
 # Editors, operating system and backups
 .vscode/
