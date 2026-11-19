@@ -1,5 +1,19 @@
 # Changelog SourceMod
 
+## [Unreleased]
+
+### Cambiado
+
+- SteamIDTools se obtiene desde una revisión Git y se compila como parte de
+  cada plugin consumidor.
+- Se documenta la licencia GPL-3.0 o posterior para el código de SteamIDTools,
+  en continuidad con la licencia del include original.
+
+### Eliminado
+
+- Se retiran Make, el workflow de GitHub Actions, las herramientas de compilación
+  y pruebas, y la generación y publicación de ZIP de la biblioteca.
+
 ## 4.0.0
 
 - API principal con conversiones puras en `steamidtools.inc`.
@@ -18,7 +32,7 @@
 
 Este archivo sigue el formato de Keep a Changelog y usa SemVer.
 
-## [Unreleased]
+## [2.5.0] (desarrollo histórico)
 
 ### Added
 
